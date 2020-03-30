@@ -1,5 +1,5 @@
 # react-fp-ts-router
-Root component router that parses with [fp-ts-routing](https://github.com/gcanti/fp-ts-routing)
+Root component router that parses routes with [fp-ts-routing](https://github.com/gcanti/fp-ts-routing)
 
 Updates global state as a callback, and [narrows](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates) global state type further down the component tree.
 
