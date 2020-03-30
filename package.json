@@ -1,0 +1,24 @@
+{
+  "name": "react-callback-routes",
+  "version": "1.0.0",
+  "description": "Updates global state with a routing callback, and narrows global state type further down the component tree.",
+  "main": "dist/index.js",
+  "repository": "https://github.com/anthonyjoeseph/react-callback-routes",
+  "author": "anthonygabriele <anthonyjoeseph@gmail.com>",
+  "license": "MIT",
+  "prepublish": "tsc",
+  "types": "./dist/index.d.ts",
+  "peerDependencies": {
+    "react": ">= 16.13.1"
+  },
+  "devDependencies": {
+    "@types/history": "^4.7.5",
+    "@types/react": "^16.9.27",
+    "@typescript-eslint/eslint-plugin": "^2.25.0",
+    "@typescript-eslint/parser": "^2.25.0",
+    "eslint": "^6.8.0",
+    "history": "^4.10.1",
+    "typescript": "^3.8.3",
+    "fp-ts": "^2.5.3"
+  }
+}
