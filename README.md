@@ -5,4 +5,4 @@ Vaguely inspired by [real world halogen](https://github.com/thomashoneyman/pures
 
 Thanks to Giulio Canti for [fp-ts](https://github.com/gcanti/fp-ts)
 
-TODO: create sister libraries for route [parsing and printing](https://github.com/natefaubion/purescript-routing-duplex)
+TODO: create sister libraries for [route parsing and printing](https://github.com/natefaubion/purescript-routing-duplex)
