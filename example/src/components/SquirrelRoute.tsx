@@ -1,7 +1,6 @@
 import React from 'react';
 import * as E from 'fp-ts/lib/Either';
-import { UpdateState } from 'react-callback-router';
-import withNarrowerAppState from '../../../src/withNarrowerAppState';
+import { UpdateState, withNarrowerAppState } from 'react-callback-router';
 import { AS, SS } from '../logic/AppState';
 import DismissSquirrelButton from './DismissSquirrelButton';
 import { AppRoute } from '../logic/RouteTypes';

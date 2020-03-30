@@ -8457,15 +8457,18 @@ react-app-polyfill@^1.0.6:
     regenerator-runtime "^0.13.3"
     whatwg-fetch "^3.0.0"
 
-react-callback-router@^1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/react-callback-router/-/react-callback-router-1.0.4.tgz#7d5934f916c94daa5da82eef4f53891605bf1334"
-  integrity sha512-pFASRZ/1bo6TkB3zzzMh0vMAy2wD2zKnjeEO3S0jcNyVl9L0cxnyHTEBZGbIBsFNVr0QZ4C9EbXFHpffF9ExqA==
+react-callback-router@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/react-callback-router/-/react-callback-router-1.0.5.tgz#4418e5faca2f84cce13d0ab01cdfbbf9698ee51a"
+  integrity sha512-9KIiMRjyWGIrYnOooNXADYLjhMPyUJ+VNaqMHWHn4Ufp3dotHjV3U1DuBA5InyKPM6mF/19zXxlH+mjbVxHyvA==
   dependencies:
     "@types/history" "^4.7.5"
     "@types/react" "^16.9.27"
     fp-ts "^2.5.3"
+    fp-ts-routing "^0.5.3"
     history "^4.10.1"
+    io-ts "^2.1.2"
+    react "^16.13.1"
 
 react-dev-utils@^10.2.1:
   version "10.2.1"

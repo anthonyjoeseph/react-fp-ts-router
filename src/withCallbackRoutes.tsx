@@ -45,11 +45,11 @@ export default function withCallbackRoutes<S, R>(
       if (appState) {
         this.setState(appState, () => {
           if (route) {
-            history.push(Route.toString());
+            history.push(route.toString());
           }
         });
       } else if (route) {
-        history.push(Route.toString());
+        history.push(route.toString());
       }
     }
 

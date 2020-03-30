@@ -16,21 +16,21 @@ export const updateStateFromRoute = (
   appState: AS,
 ): (a: AppRoute) => T.Task<AppStateWithRoute<AS, AppRoute>> => AppRoute.match({
   Squirrel: () => E.isLeft(appState.squirrelStuff)
-    && appState.squirrelStuff.left === LoadingError.NOT_LOADED()
+    && appState.squirrelStuff.left.tag === LoadingError.NOT_LOADED().tag
       ? pipe(
           getSquirrelFromREST(),
           T.map(squirrelRespToRoutelessState),
         )
       : T.of({}),
   NutError: () => E.isRight(appState.squirrelStuff)
-    || appState.squirrelStuff.left === LoadingError.NOT_LOADED()
+    || appState.squirrelStuff.left.tag === LoadingError.NOT_LOADED().tag
       ? pipe(
         getNutErrorFromREST(),
         T.map(squirrelRespToRoutelessState),
       )
       : T.of({}),
   TreeError: () => E.isRight(appState.squirrelStuff)
-    || appState.squirrelStuff.left === LoadingError.NOT_LOADED()
+    || appState.squirrelStuff.left.tag === LoadingError.NOT_LOADED().tag
       ? pipe(
         getTreeErrorFromREST(),
         T.map(squirrelRespToRoutelessState),
