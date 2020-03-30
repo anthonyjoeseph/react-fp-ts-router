@@ -1,2 +1,28 @@
 dist
 node_modules
+
+#copy of example project's gitignore
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+example/node_modules
+example/.pnp
+example/.pnp.js
+
+# testing
+example/coverage
+
+# production
+example/build
+
+# misc
+example/.DS_Store
+example/.env.local
+example/.env.development.local
+example/.env.test.local
+example/.env.production.local
+
+example/npm-debug.log*
+example/yarn-debug.log*
+example/yarn-error.log*
