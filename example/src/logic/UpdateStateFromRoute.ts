@@ -12,9 +12,11 @@ const squirrelRespToRoutelessState = (
   appState: { squirrelStuff: resp },
 })
 
+type RetType = T.Task<AppStateWithRoute<AS, AppRoute>>
+
 export const updateStateFromRoute = (
   appState: AS,
-): (a: AppRoute) => T.Task<AppStateWithRoute<AS, AppRoute>> => AppRoute.match({
+): (variant: AppRoute) => RetType => AppRoute.match<RetType>({
   Squirrel: () => E.isLeft(appState.squirrelStuff)
     && appState.squirrelStuff.left.tag === LoadingError.NOT_LOADED().tag
       ? pipe(

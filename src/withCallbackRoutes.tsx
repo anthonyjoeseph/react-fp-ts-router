@@ -24,6 +24,15 @@ interface AppStateProps<S, R> {
   updateState: UpdateState<S, R>;
 }
 
+/**
+ * @template S - Global app state
+ * @template R - User-defined route type
+ * @param {S,R} Root - Your app's root component
+ * @param {R} parser - Converts fp-ts-parsing's Route into user-defined route
+ * @param {R} notFoundRoute - User-defined route to use when parser can't find a route
+ * @param {S,R} defaultStateFromRoute - Populates app's global state before component is mounted
+ * @param {S,R} newStateFromRoute - Callback on component mount and route change
+ */
 export default function withCallbackRoutes<S, R>(
   Root: React.ComponentType<AppStateProps<S, R>>,
   parser: Parser<R>,
