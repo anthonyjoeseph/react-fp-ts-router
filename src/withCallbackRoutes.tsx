@@ -4,7 +4,7 @@ import { pipe } from 'fp-ts/lib/pipeable';
 import * as History from 'history';
 
 export interface AppStateWithRoute<S> {
-  appState?: Partial<S>;
+  appState?: Pick<S, keyof S>;
   route?: string;
 }
 
@@ -41,10 +41,7 @@ export default function withCallbackRoutes<S>(
     private updateStateWithRoute = (a: AppStateWithRoute<S>): void => {
       const { appState, route } = a;
       if (appState) {
-        this.setState({
-          ...this.state,
-          appState,
-        }, () => {
+        this.setState(appState, () => {
           if (route) {
             history.push(route);
           }

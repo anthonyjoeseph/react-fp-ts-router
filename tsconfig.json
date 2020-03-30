@@ -10,4 +10,5 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
   },
+  "exclude": ["example", "dist", "node_modules"]
 }
