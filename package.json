@@ -3,7 +3,7 @@
   "version": "1.0.7",
   "description": "Updates global state with a routing callback, and narrows global state type further down the component tree.",
   "main": "dist/index.js",
-  "repository": "https://github.com/anthonyjoeseph/react-callback-router",
+  "repository": "https://github.com/anthonyjoeseph/react-fp-ts-router",
   "author": "anthonygabriele <anthonyjoeseph@gmail.com>",
   "license": "MIT",
   "prepublish": "tsc",

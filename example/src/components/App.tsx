@@ -1,4 +1,4 @@
-import { withCallbackRoutes } from 'react-callback-router';
+import { withCallbackRoutes } from 'react-fp-ts-router';
 import { AS, defaultAppStateFromRouter } from '../logic/AppState';
 import updateStateFromRoute from '../logic/UpdateStateFromRoute';
 import Landing from './Landing';

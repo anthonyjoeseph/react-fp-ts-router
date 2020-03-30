@@ -1,7 +1,7 @@
 import * as T from 'fp-ts/lib/Task';
 import * as E from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
-import { AppStateWithRoute } from 'react-callback-router';
+import { AppStateWithRoute } from 'react-fp-ts-router';
 import { AS, SquirrelStuff, LoadingError } from './AppState';
 import { getSquirrelFromREST, getNutErrorFromREST, getTreeErrorFromREST, SquirrelErrorType } from './SquirrelREST';
 import { AppRoute } from './RouteTypes';

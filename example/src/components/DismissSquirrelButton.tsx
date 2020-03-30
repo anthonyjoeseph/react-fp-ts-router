@@ -1,6 +1,6 @@
 import React from 'react';
 import * as E from 'fp-ts/lib/Either';
-import { UpdateState } from 'react-callback-router';
+import { UpdateState } from 'react-fp-ts-router';
 import { AS, LoadingError } from '../logic/AppState';
 import { homeDuplex, AppRoute } from '../logic/RouteTypes';
 import { Route } from 'fp-ts-routing';

@@ -1,5 +1,5 @@
 import * as E from 'fp-ts/lib/Either';
-import { DefaultStateFromRoute } from 'react-callback-router';
+import { DefaultStateFromRoute } from 'react-fp-ts-router';
 import { unionize, UnionOf } from 'unionize';
 import { SquirrelErrorType } from './SquirrelREST';
 import { AppRoute } from './RouteTypes';

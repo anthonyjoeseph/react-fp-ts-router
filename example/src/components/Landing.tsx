@@ -3,7 +3,7 @@ import * as T from 'fp-ts/lib/Task';
 import * as E from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { AS } from '../logic/AppState';
-import { UpdateState } from 'react-callback-router';
+import { UpdateState } from 'react-fp-ts-router';
 import SquirrelRoute from './SquirrelRoute';
 import SquirrelErrorRoute from './SquirrelErrorRoute';
 import { getNutErrorFromREST, getTreeErrorFromREST } from '../logic/SquirrelREST';
