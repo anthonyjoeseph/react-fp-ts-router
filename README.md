@@ -1,5 +1,5 @@
 # react-callback-router
-Updates global state as a routing callback, and narrows global state type further down the component tree.
+Updates global state as a routing callback, and [narrows](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates) global state type further down the component tree.
 
 Vaguely inspired by [real world halogen](https://github.com/thomashoneyman/purescript-halogen-realworld)
 
