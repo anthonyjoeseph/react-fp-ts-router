@@ -22,17 +22,10 @@ export const updateStateFromRoute = (
           T.map(squirrelRespToRoutelessState),
         )
       : T.of({}),
-  NutError: () => E.isRight(appState.squirrelStuff)
+  SquirrelError: ({ type }) => E.isRight(appState.squirrelStuff)
     || appState.squirrelStuff.left.tag === LoadingError.NOT_LOADED().tag
       ? pipe(
-        getNutErrorFromREST(),
-        T.map(squirrelRespToRoutelessState),
-      )
-      : T.of({}),
-  TreeError: () => E.isRight(appState.squirrelStuff)
-    || appState.squirrelStuff.left.tag === LoadingError.NOT_LOADED().tag
-      ? pipe(
-        getTreeErrorFromREST(),
+        type === 'nut' ? getNutErrorFromREST() : getTreeErrorFromREST(),
         T.map(squirrelRespToRoutelessState),
       )
       : T.of({}),

@@ -8457,19 +8457,6 @@ react-app-polyfill@^1.0.6:
     regenerator-runtime "^0.13.3"
     whatwg-fetch "^3.0.0"
 
-react-callback-router@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/react-callback-router/-/react-callback-router-1.0.7.tgz#24b3c1bdf44e3bbb8094600da2cf0d6efe4a9e2e"
-  integrity sha512-fOJzgBjkg6TR5w/3y86odGqWuQXNPnvX/ANTbK3ZczRdxAQX6iwPShblOMMR3hNLIou/gpH3r7ZAk5Od4ydzag==
-  dependencies:
-    "@types/history" "^4.7.5"
-    "@types/react" "^16.9.27"
-    fp-ts "^2.5.3"
-    fp-ts-routing "^0.5.3"
-    history "^4.10.1"
-    io-ts "^2.1.2"
-    react "^16.13.1"
-
 react-dev-utils@^10.2.1:
   version "10.2.1"
   resolved "https://registry.yarnpkg.com/react-dev-utils/-/react-dev-utils-10.2.1.tgz#f6de325ae25fa4d546d09df4bb1befdc6dd19c19"
@@ -8514,6 +8501,19 @@ react-error-overlay@^6.0.7:
   version "6.0.7"
   resolved "https://registry.yarnpkg.com/react-error-overlay/-/react-error-overlay-6.0.7.tgz#1dcfb459ab671d53f660a991513cb2f0a0553108"
   integrity sha512-TAv1KJFh3RhqxNvhzxj6LeT5NWklP6rDr2a0jaTfsZ5wSZWHOGeqQyejUp3xxLfPt2UpyJEcVQB/zyPcmonNFA==
+
+react-fp-ts-router@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/react-fp-ts-router/-/react-fp-ts-router-0.0.3.tgz#d6f7acfc65f80f60018da2f8562166e323ae795e"
+  integrity sha512-z73P1ZoVt/TkY7Wa+WmezL2fbMTr0bJi6IeQMIVtK/Zjjwb7tnSQ0qYjeDspAYJX5WubcPBkgpuhdK7ppVjDKQ==
+  dependencies:
+    "@types/history" "^4.7.5"
+    "@types/react" "^16.9.27"
+    fp-ts "^2.5.3"
+    fp-ts-routing "^0.5.3"
+    history "^4.10.1"
+    io-ts "^2.1.2"
+    react "^16.13.1"
 
 react-is@^16.12.0, react-is@^16.8.1, react-is@^16.8.4:
   version "16.13.1"

@@ -7,7 +7,7 @@ import { UpdateState } from 'react-fp-ts-router';
 import SquirrelRoute from './SquirrelRoute';
 import SquirrelErrorRoute from './SquirrelErrorRoute';
 import { getNutErrorFromREST, getTreeErrorFromREST } from '../logic/SquirrelREST';
-import { squirrelDuplex, nutErrorDuplex, treeErrorDuplex, AppRoute } from '../logic/RouteTypes';
+import { squirrelDuplex, squirrelErrorDuplex, AppRoute } from '../logic/RouteTypes';
 import { Route } from 'fp-ts-routing';
 
 const Landing = ({
@@ -40,7 +40,7 @@ const Landing = ({
             getNutErrorFromREST(),
             T.map(resp => ({
               appState: { squirrelStuff: resp },
-              route: nutErrorDuplex.formatter.run(Route.empty, {}),
+              route: squirrelErrorDuplex.formatter.run(Route.empty, { id: 'nut' }),
             })),
             T.map(updateState),
           );
@@ -55,7 +55,7 @@ const Landing = ({
             getTreeErrorFromREST(),
             T.map(resp => ({
               appState: { squirrelStuff: resp },
-              route: treeErrorDuplex.formatter.run(Route.empty, {}),
+              route: squirrelErrorDuplex.formatter.run(Route.empty, { id: 'tree' }),
             })),
             T.map(updateState),
           );
