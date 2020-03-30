@@ -1,11 +1,11 @@
 import React from 'react';
 import * as E from 'fp-ts/lib/Either';
-import { UpdateState } from 'react-callback-router'
+import { UpdateState } from 'react-callback-router';
 import { AS, LoadingError } from '../logic/AppState';
-import { homeDuplex } from '../logic/RouteTypes';
+import { homeDuplex, AppRoute } from '../logic/RouteTypes';
 import { Route } from 'fp-ts-routing';
 
-export default ({ updateState }: { updateState: UpdateState<AS> }) => (
+export default ({ updateState }: { updateState: UpdateState<AS, AppRoute> }) => (
   <button
     onClick={() => {
       updateState({

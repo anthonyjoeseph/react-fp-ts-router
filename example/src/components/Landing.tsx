@@ -3,11 +3,11 @@ import * as T from 'fp-ts/lib/Task';
 import * as E from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { AS } from '../logic/AppState';
-import { UpdateState } from 'react-callback-router/dist/withCallbackRoutes';
+import { UpdateState } from 'react-callback-router';
 import SquirrelRoute from './SquirrelRoute';
 import SquirrelErrorRoute from './SquirrelErrorRoute';
 import { getNutErrorFromREST, getTreeErrorFromREST } from '../logic/SquirrelREST';
-import { squirrelDuplex, nutErrorDuplex, treeErrorDuplex } from '../logic/RouteTypes';
+import { squirrelDuplex, nutErrorDuplex, treeErrorDuplex, AppRoute } from '../logic/RouteTypes';
 import { Route } from 'fp-ts-routing';
 
 const Landing = ({
@@ -15,7 +15,7 @@ const Landing = ({
   updateState,
 }: {
   appState: AS,
-  updateState: UpdateState<AS>,
+  updateState: UpdateState<AS, AppRoute>,
 }) => {
   return (
     <div>
@@ -28,7 +28,7 @@ const Landing = ({
                 name: 'Rocky',
               }),
             },
-            route: squirrelDuplex.formatter.run(Route.empty, {}).toString(),
+            route: squirrelDuplex.formatter.run(Route.empty, {}),
           });
         }}
       >
@@ -40,7 +40,7 @@ const Landing = ({
             getNutErrorFromREST(),
             T.map(resp => ({
               appState: { squirrelStuff: resp },
-              route: nutErrorDuplex.formatter.run(Route.empty, {}).toString(),
+              route: nutErrorDuplex.formatter.run(Route.empty, {}),
             })),
             T.map(updateState),
           );
@@ -55,7 +55,7 @@ const Landing = ({
             getTreeErrorFromREST(),
             T.map(resp => ({
               appState: { squirrelStuff: resp },
-              route: treeErrorDuplex.formatter.run(Route.empty, {}).toString(),
+              route: treeErrorDuplex.formatter.run(Route.empty, {}),
             })),
             T.map(updateState),
           );

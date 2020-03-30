@@ -2,6 +2,7 @@ import * as E from 'fp-ts/lib/Either';
 import { DefaultStateFromRoute } from 'react-callback-router';
 import { unionize, UnionOf } from 'unionize';
 import { SquirrelError, SquirrelErrorType } from './SquirrelREST';
+import { AppRoute } from './RouteTypes';
 
 export interface SquirrelStuff {
   id: number;
@@ -29,6 +30,6 @@ export interface ES {
   squirrelStuff: E.Left<SquirrelErrorType>;
 }
 
-export const defaultAppStateFromRouter: DefaultStateFromRoute<AS> = () => ({
+export const defaultAppStateFromRouter: DefaultStateFromRoute<AS, AppRoute> = () => ({
   squirrelStuff: E.left<LoadingErrorType, SquirrelStuff>(LoadingError.NOT_LOADED()),
 });

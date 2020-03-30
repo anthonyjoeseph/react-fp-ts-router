@@ -9,14 +9,20 @@
   "prepublish": "tsc",
   "types": "./dist/index.d.ts",
   "peerDependencies": {
+    "@types/react": ">= 16.9.27",
+    "fp-ts": ">= 2.5.3",
+    "fp-ts-routing": ">= 0.5.3",
+    "io-ts": ">= 2.1.2",
     "react": ">= 16.13.1"
   },
   "dependencies": {
     "@types/history": "^4.7.5",
+    "history": "^4.10.1",
     "@types/react": "^16.9.27",
     "fp-ts": "^2.5.3",
     "fp-ts-routing": "^0.5.3",
-    "history": "^4.10.1"
+    "io-ts": "^2.1.2",
+    "react": "^16.13.1"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.25.0",

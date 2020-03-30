@@ -15,6 +15,7 @@ export type DefaultStateFromRoute<S, R> = (route: R) => S;
 
 export type StateTaskFromRoute<S, R> = (
   appState: S,
+) => (
   route: R,
 ) => T.Task<AppStateWithRoute<S, R>>;
 
@@ -25,9 +26,9 @@ interface AppStateProps<S, R> {
 
 export default function withCallbackRoutes<S, R>(
   Root: React.ComponentType<AppStateProps<S, R>>,
-  defaultStateFromRoute: DefaultStateFromRoute<S, R>,
-  router: Parser<R>,
+  parser: Parser<R>,
   notFoundRoute: R,
+  defaultStateFromRoute: DefaultStateFromRoute<S, R>,
   newStateFromRoute: StateTaskFromRoute<S, R>,
 ): React.ComponentType<{}>{
 
@@ -36,7 +37,7 @@ export default function withCallbackRoutes<S, R>(
   return class CallbackRoutes extends Component<{}, S>{
     
     public state = defaultStateFromRoute(
-      parse(router, Route.parse(history.location.pathname), notFoundRoute)
+      parse(parser, Route.parse(history.location.pathname), notFoundRoute)
     );
 
     private updateStateWithRoute = (a: AppStateWithRoute<S, R>): void => {
@@ -55,9 +56,8 @@ export default function withCallbackRoutes<S, R>(
     public componentDidMount(): void {
       history.listen((location) => {
         const runSetState = pipe(
-          newStateFromRoute(
-            this.state,
-            parse(router, Route.parse(location.pathname), notFoundRoute),
+          newStateFromRoute(this.state)(
+            parse(parser, Route.parse(location.pathname), notFoundRoute),
           ),
           T.map((a) => this.updateStateWithRoute(a)),
         );

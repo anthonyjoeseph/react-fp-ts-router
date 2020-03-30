@@ -1,8 +1,10 @@
 import React from 'react';
 import * as E from 'fp-ts/lib/Either';
-import { withNarrowerAppState, UpdateState } from 'react-callback-router'
+import { UpdateState } from 'react-callback-router';
+import withNarrowerAppState from '../../../src/withNarrowerAppState';
 import { AS, SS } from '../logic/AppState';
 import DismissSquirrelButton from './DismissSquirrelButton';
+import { AppRoute } from '../logic/RouteTypes';
 
 const SquirrelRoute = ({
   appState,
@@ -10,7 +12,7 @@ const SquirrelRoute = ({
   customColor,
 }: {
   appState: AS & SS;
-  updateState: UpdateState<AS>;
+  updateState: UpdateState<AS, AppRoute>;
   customColor: string;
 }) => (
   <div
