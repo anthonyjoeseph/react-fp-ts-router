@@ -7,6 +7,8 @@ import { UpdateState } from 'react-callback-router/dist/withCallbackRoutes';
 import SquirrelRoute from './SquirrelRoute';
 import SquirrelErrorRoute from './SquirrelErrorRoute';
 import { getNutErrorFromREST, getTreeErrorFromREST } from '../logic/SquirrelREST';
+import { squirrelDuplex, nutErrorDuplex, treeErrorDuplex } from '../logic/RouteTypes';
+import { Route } from 'fp-ts-routing';
 
 const Landing = ({
   appState,
@@ -26,7 +28,7 @@ const Landing = ({
                 name: 'Rocky',
               }),
             },
-            route: '/squirrel',
+            route: squirrelDuplex.formatter.run(Route.empty, {}).toString(),
           });
         }}
       >
@@ -38,7 +40,7 @@ const Landing = ({
             getNutErrorFromREST(),
             T.map(resp => ({
               appState: { squirrelStuff: resp },
-              route: '/nutError',
+              route: nutErrorDuplex.formatter.run(Route.empty, {}).toString(),
             })),
             T.map(updateState),
           );
@@ -53,7 +55,7 @@ const Landing = ({
             getTreeErrorFromREST(),
             T.map(resp => ({
               appState: { squirrelStuff: resp },
-              route: '/treeError',
+              route: treeErrorDuplex.formatter.run(Route.empty, {}).toString(),
             })),
             T.map(updateState),
           );

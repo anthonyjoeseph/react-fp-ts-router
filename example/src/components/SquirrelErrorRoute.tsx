@@ -1,8 +1,9 @@
 import React from 'react';
 import * as E from 'fp-ts/lib/Either';
 import { withNarrowerAppState, UpdateState } from 'react-callback-router'
-import { AS, ES } from '../logic/AppState';
+import { AS, ES, LoadingError } from '../logic/AppState';
 import DismissSquirrelButton from './DismissSquirrelButton';
+import { SquirrelError } from '../logic/SquirrelREST';
 
 const SquirrelErrorRoute = ({
   appState,
@@ -11,15 +12,10 @@ const SquirrelErrorRoute = ({
   appState: AS & ES;
   updateState: UpdateState<AS>;
 }) => {
-  let message: string;
-  switch(appState.squirrelStuff.left) {
-    case 'HardNutToCrack':
-      message = 'Hard nut to crack.';
-      break;
-    case 'TreeFellDown':
-      message = 'Tree fell down.';
-      break;
-  }
+  const message = SquirrelError.match({
+    HARD_NUT_TO_CRACK: () => 'Hard nut to crack.',
+    TREE_FELL_DOWN: () => 'Tree fell down.',
+  })(appState.squirrelStuff.left);
   return (
     <div
       style={{
@@ -38,5 +34,5 @@ const SquirrelErrorRoute = ({
 export default withNarrowerAppState(
   SquirrelErrorRoute,
   (a: AS): a is AS & ES => E.isLeft(a.squirrelStuff)
-    && a.squirrelStuff.left !== 'NotLoaded',
+    && a.squirrelStuff.left !== LoadingError.NOT_LOADED(),
 );

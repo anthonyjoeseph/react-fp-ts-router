@@ -4508,6 +4508,11 @@ forwarded@~0.1.2:
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"
   integrity sha1-mMI9qxF1ZXuMBXPozszZGw/xjIQ=
 
+fp-ts-routing@^0.5.3:
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/fp-ts-routing/-/fp-ts-routing-0.5.3.tgz#39376447ba396cffd9249102a5c5392ea29047f3"
+  integrity sha512-gUfMDEgXlCdLLWP6YjYMoSlybw17fB7Q47ralFh4lScrHfw/hAzMKbQCZ/qnkdo2PIArEM0jjFfJCy/BOWzJRA==
+
 fp-ts@^2.5.3:
   version "2.5.3"
   resolved "https://registry.yarnpkg.com/fp-ts/-/fp-ts-2.5.3.tgz#7f09cc7f3e09623c6ade303d98a2cccdb2cc861f"
@@ -8447,10 +8452,10 @@ react-app-polyfill@^1.0.6:
     regenerator-runtime "^0.13.3"
     whatwg-fetch "^3.0.0"
 
-react-callback-router@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/react-callback-router/-/react-callback-router-1.0.3.tgz#7b0d293988ab28484e84007c043bf70b20081cdd"
-  integrity sha512-O0cERiBTx5Vo/14Q9Dqa+TCgWSXak12uNW9jlivAuw04eaE3Cc4Hs5vPhulI+sN8GYrGAnFZKkTF6DD68zPzIg==
+react-callback-router@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/react-callback-router/-/react-callback-router-1.0.4.tgz#7d5934f916c94daa5da82eef4f53891605bf1334"
+  integrity sha512-pFASRZ/1bo6TkB3zzzMh0vMAy2wD2zKnjeEO3S0jcNyVl9L0cxnyHTEBZGbIBsFNVr0QZ4C9EbXFHpffF9ExqA==
   dependencies:
     "@types/history" "^4.7.5"
     "@types/react" "^16.9.27"
@@ -10084,6 +10089,11 @@ union-value@^1.0.0:
     get-value "^2.0.6"
     is-extendable "^0.1.1"
     set-value "^2.0.1"
+
+unionize@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/unionize/-/unionize-3.1.0.tgz#0a94d5b9e700a23d158ccb234bbf5fd371e8ccc3"
+  integrity sha512-LQZvbanzvpzvK0QYgRvnaA9VVe+g4nTbRlyoGGWDKFrZn0HJnDN5LC2Ti0+BxpKKOCrL3BQcRBVFPy/t12Y24Q==
 
 uniq@^1.0.1:
   version "1.0.1"

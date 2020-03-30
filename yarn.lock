@@ -466,6 +466,11 @@ flatted@^2.0.0:
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-2.0.2.tgz#4575b21e2bcee7434aa9be662f4b7b5f9c2b5138"
   integrity sha512-r5wGx7YeOwNWNlCA0wQ86zKyDLMQr+/RB8xy74M4hTphfmjlijTSSXGuH8rnvKZnfT9i+75zmd8jcKdMR4O6jA==
 
+fp-ts-routing@^0.5.3:
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/fp-ts-routing/-/fp-ts-routing-0.5.3.tgz#39376447ba396cffd9249102a5c5392ea29047f3"
+  integrity sha512-gUfMDEgXlCdLLWP6YjYMoSlybw17fB7Q47ralFh4lScrHfw/hAzMKbQCZ/qnkdo2PIArEM0jjFfJCy/BOWzJRA==
+
 fp-ts@^2.5.3:
   version "2.5.3"
   resolved "https://registry.yarnpkg.com/fp-ts/-/fp-ts-2.5.3.tgz#7f09cc7f3e09623c6ade303d98a2cccdb2cc861f"

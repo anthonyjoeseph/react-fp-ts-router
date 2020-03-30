@@ -2,59 +2,63 @@ import React, { Component } from 'react';
 import * as T from 'fp-ts/lib/Task';
 import { pipe } from 'fp-ts/lib/pipeable';
 import * as History from 'history';
+import { parse, Route, Parser } from 'fp-ts-routing';
 
-export interface AppStateWithRoute<S> {
+export interface AppStateWithRoute<S, R> {
   appState?: Pick<S, keyof S>;
-  route?: string;
+  route?: Route;
 }
 
-export type UpdateState<S> = (a: AppStateWithRoute<S>) => void
+export type UpdateState<S, R> = (a: AppStateWithRoute<S, R>) => void
 
-export type DefaultStateFromRoute<S> = (
-  location: History.Location<History.LocationState>,
-  action: History.Action,
-) => S;
+export type DefaultStateFromRoute<S, R> = (route: R) => S;
 
-export type StateTaskFromRoute<S> = (
+export type StateTaskFromRoute<S, R> = (
   appState: S,
-  location: History.Location<History.LocationState>,
-  action: History.Action,
-) => T.Task<AppStateWithRoute<S>>;
+  route: R,
+) => T.Task<AppStateWithRoute<S, R>>;
 
-interface AppStateProps<S> {
+interface AppStateProps<S, R> {
   appState: S;
-  updateState: UpdateState<S>;
+  updateState: UpdateState<S, R>;
 }
 
-export default function withCallbackRoutes<S>(
-  Root: React.ComponentType<AppStateProps<S>>,
-  defaultStateFromRoute: DefaultStateFromRoute<S>,
-  newStateFromRoute: StateTaskFromRoute<S>,
+export default function withCallbackRoutes<S, R>(
+  Root: React.ComponentType<AppStateProps<S, R>>,
+  defaultStateFromRoute: DefaultStateFromRoute<S, R>,
+  router: Parser<R>,
+  notFoundRoute: R,
+  newStateFromRoute: StateTaskFromRoute<S, R>,
 ): React.ComponentType<{}>{
 
   const history = History.createBrowserHistory();
 
   return class CallbackRoutes extends Component<{}, S>{
     
-    public state = defaultStateFromRoute(history.location, history.action);
+    public state = defaultStateFromRoute(
+      parse(router, Route.parse(history.location.pathname), notFoundRoute)
+    );
 
-    private updateStateWithRoute = (a: AppStateWithRoute<S>): void => {
+    private updateStateWithRoute = (a: AppStateWithRoute<S, R>): void => {
       const { appState, route } = a;
       if (appState) {
         this.setState(appState, () => {
           if (route) {
-            history.push(route);
+            history.push(Route.toString());
           }
         });
       } else if (route) {
-        history.push(route);
+        history.push(Route.toString());
       }
     }
 
     public componentDidMount(): void {
-      history.listen((l, a) => {
+      history.listen((location) => {
         const runSetState = pipe(
-          newStateFromRoute(this.state, l, a),
+          newStateFromRoute(
+            this.state,
+            parse(router, Route.parse(location.pathname), notFoundRoute),
+          ),
           T.map((a) => this.updateStateWithRoute(a)),
         );
         runSetState();
