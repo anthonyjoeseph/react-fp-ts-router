@@ -10,6 +10,11 @@ Thanks to Giulio Canti for [fp-ts](https://github.com/gcanti/fp-ts) and [fp-ts-r
 ## Installation
 `yarn add react-fp-ts-router`
 
+# Docs
+
+## Full example
+[Code from this readme](https://github.com/anthonyjoeseph/react-fp-ts-router/blob/master/example/src/ReadmeExample.tsx)
+
 ## Globals You Must Create
 
 Your app's state:
@@ -42,16 +47,30 @@ const parser = R.zero<AppRoute>()
 
 ## Router
 
+Creates a root component with global state managed by formatters and parsers from [fp-ts-routing](https://github.com/gcanti/fp-ts-routing) (uses `createBrowserHistory` from [history](https://github.com/ReactTraining/history#readme) for the actual routing).
+
 ### Types
 ```ts
 import { Parser } from 'fp-ts-routing'
+import * as History from 'history'
+
 interface AppStateWithRoute<S, R> {
   appState?: Pick<S, keyof S>;
   route?: Route;
 }
 type UpdateState<S, R> = (a: AppStateWithRoute<S, R>) => void
-type DefaultStateFromRoute<S, R> = (route: R) => S
-type StateTaskFromRoute<S, R> = (appState: S) => (route: R) => T.Task<AppStateWithRoute<S, R>>
+type DefaultStateFromRoute<S, R> = (
+  route: R,
+  location?: History.Location<History.LocationState>,
+  action?: History.Action,
+) => S
+type StateTaskFromRoute<S, R> = (
+  appState: S,
+  location?: History.Location<History.LocationState>,
+  action?: History.Action,
+) => (
+  route: R,
+) => T.Task<AppStateWithRoute<S, R>>
 
 function withCallbackRoutes<S, R>(
     Root: React.ComponentType<AppStateProps<S, R>>,
@@ -62,32 +81,40 @@ function withCallbackRoutes<S, R>(
 ): React.ComponentType<{}>
 ```
 
+### Params
+
+| Type Variable | Description |
+| ------------- | ----------- |
+| S             | Global app state |
+| R             | User-defined route type |
+
+| Param  | Description  |
+| ------ | ------------ |
+| Root  | Your app's root component |
+| parser | Converts [Route](https://gcanti.github.io/fp-ts-routing/modules/index.ts.html#route-class) into user-defined route |
+| notFoundRoute | User-defined route to use when parser can't find a route |
+| defaultStateFromRoute | Populates app's global state before component is mounted |
+| newStateFromRoute | Callback on component mount and route change |
+
 ### Usage
 
-```ts
+```tsx
 const App = withCallbackRoutes<AppState, AppRoute>(
-  ({ appState, updateState }) => {
-    return (
-      <div>
-        <HasTextRoute
-          appState={appState}
-          updateState={updateState}
-        />
-        <NoTextRoute
-          appState={appState}
-          updateState={updateState}
-        />
-      </div>
-    )
-  },
+  ({ appState, updateState }) => (
+    <div>
+      <HasTextRoute
+        appState={appState}
+        updateState={updateState}
+      />
+      <NoTextRoute
+        appState={appState}
+        updateState={updateState}
+      />
+    </div>
+  ),
   parser,
   AppRoute.NotFound(),
-
-  // only for initializing state that won't 
-  // be immediately returned by the callback
   (_: AppRoute): AppState => ({}),
-
-  // this is the callback, will be called on page load
   (appState) => AppRoute.match({
     Show: () => T.of(appState.text === undefined
       ? ({ appState: { text: 'from route' } })
@@ -98,8 +125,9 @@ const App = withCallbackRoutes<AppState, AppRoute>(
 ```
 
 ## Routes
+Renders components who accept a narrower version of the global state.
 
-Think of these as analagous to [`<Route>` from React-Router](https://reacttraining.com/react-router/web/api/Route)
+Think of `withNarrowerAppState` as analagous to [`<Route>` from React-Router](https://reacttraining.com/react-router/web/api/Route)
 
 ### Types
 ```ts
@@ -114,9 +142,23 @@ function withNarrowerAppState<
   renderCondition: (a: S) => a is N
 ): React.ComponentType<Omit<T, keyof JustStateProps<N>> & JustStateProps<S>>
 ```
+
+### Params
+
+| Type Variable | Description |
+| ------------- | ----------- |
+| S             | Global app state |
+| N             | Narrower app state |
+| T             | All of the wrapped component's props |
+
+| Param  | Description  |
+| ------ | ------------ |
+| WrappedComponent  | Component with narrow app state |
+| renderCondition | Type predicate to narrow component type |
+
 ### Usage
 
-```ts
+```tsx
 const NoTextRoute = withNarrowerAppState(
   ({
     updateState

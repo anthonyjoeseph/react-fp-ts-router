@@ -11,10 +11,16 @@ export interface AppStateWithRoute<S, R> {
 
 export type UpdateState<S, R> = (a: AppStateWithRoute<S, R>) => void
 
-export type DefaultStateFromRoute<S, R> = (route: R) => S;
+export type DefaultStateFromRoute<S, R> = (
+  route: R,
+  location?: History.Location<History.LocationState>,
+  action?: History.Action,
+) => S;
 
 export type StateTaskFromRoute<S, R> = (
   appState: S,
+  location?: History.Location<History.LocationState>,
+  action?: History.Action,
 ) => (
   route: R,
 ) => T.Task<AppStateWithRoute<S, R>>;
@@ -25,13 +31,16 @@ interface AppStateProps<S, R> {
 }
 
 /**
+ * Creates a root component with global state managed by a functional router
+ * (uses `createBrowserHistory` from {@link https://github.com/ReactTraining/history#readme history} for routing)
+ * 
  * @template S - Global app state
  * @template R - User-defined route type
- * @param {S,R} Root - Your app's root component
- * @param {R} parser - Converts fp-ts-parsing's Route into user-defined route
- * @param {R} notFoundRoute - User-defined route to use when parser can't find a route
- * @param {S,R} defaultStateFromRoute - Populates app's global state before component is mounted
- * @param {S,R} newStateFromRoute - Callback on component mount and route change
+ * @param Root - Your app's root component
+ * @param parser - Converts {@link https://gcanti.github.io/fp-ts-routing/modules/index.ts.html#route-class Route} into user-defined route
+ * @param notFoundRoute - User-defined route to use when parser can't find a route
+ * @param defaultStateFromRoute - Populates app's global state before component is mounted
+ * @param newStateFromRoute - Callback on component mount and route change
  */
 export default function withCallbackRoutes<S, R>(
   Root: React.ComponentType<AppStateProps<S, R>>,
@@ -63,9 +72,9 @@ export default function withCallbackRoutes<S, R>(
     }
 
     public componentDidMount(): void {
-      history.listen((location) => {
+      history.listen((location, action) => {
         const runSetState = pipe(
-          newStateFromRoute(this.state)(
+          newStateFromRoute(this.state, location, action)(
             parse(parser, Route.parse(location.pathname), notFoundRoute),
           ),
           T.map((a) => this.updateStateWithRoute(a)),
@@ -73,7 +82,7 @@ export default function withCallbackRoutes<S, R>(
         runSetState();
       });
       const runSetState = pipe(
-        newStateFromRoute(this.state)(
+        newStateFromRoute(this.state, history.location, history.action)(
           parse(parser, Route.parse(history.location.pathname), notFoundRoute),
         ),
         T.map((a) => this.updateStateWithRoute(a)),
