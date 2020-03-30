@@ -1,7 +1,8 @@
 import withCallbackRoutes, {
   AppStateWithRoute,
   UpdateState,
-  NewStateFromRoute,
+  DefaultStateFromRoute,
+  StateTaskFromRoute,
 } from "./withCallbackRoutes";
 import withNarrowerAppState from "./withNarrowerAppState";
 
@@ -10,5 +11,6 @@ export {
   withNarrowerAppState,
   AppStateWithRoute,
   UpdateState,
-  NewStateFromRoute,
+  DefaultStateFromRoute,
+  StateTaskFromRoute,
 };

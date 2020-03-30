@@ -1,17 +1,21 @@
 import React, { Component } from 'react';
 import * as T from 'fp-ts/lib/Task';
-import * as O from 'fp-ts/lib/Option';
 import { pipe } from 'fp-ts/lib/pipeable';
 import * as History from 'history';
 
 export interface AppStateWithRoute<S> {
-  appState: O.Option<S>;
-  route: O.Option<string>;
+  appState?: Partial<S>;
+  route?: string;
 }
 
 export type UpdateState<S> = (a: AppStateWithRoute<S>) => void
 
-export type NewStateFromRoute<S> = (
+export type DefaultStateFromRoute<S> = (
+  location: History.Location<History.LocationState>,
+  action: History.Action,
+) => S;
+
+export type StateTaskFromRoute<S> = (
   appState: S,
   location: History.Location<History.LocationState>,
   action: History.Action,
@@ -24,23 +28,29 @@ interface AppStateProps<S> {
 
 export default function withCallbackRoutes<S>(
   Root: React.ComponentType<AppStateProps<S>>,
-  defaultState: S,
-  newStateFromRoute: NewStateFromRoute<S>,
+  defaultStateFromRoute: DefaultStateFromRoute<S>,
+  newStateFromRoute: StateTaskFromRoute<S>,
 ): React.ComponentType<{}>{
+
   const history = History.createBrowserHistory();
+
   return class CallbackRoutes extends Component<{}, S>{
-    public state = defaultState;
+    
+    public state = defaultStateFromRoute(history.location, history.action);
 
     private updateStateWithRoute = (a: AppStateWithRoute<S>): void => {
       const { appState, route } = a;
-      if (O.isSome(appState)) {
-        this.setState(appState.value, () => {
-          if (O.isSome(route)) {
-            history.push(route.value);
+      if (appState) {
+        this.setState({
+          ...this.state,
+          appState,
+        }, () => {
+          if (route) {
+            history.push(route);
           }
         });
-      } else if (O.isSome(route)) {
-        history.push(route.value);
+      } else if (route) {
+        history.push(route);
       }
     }
 
@@ -52,11 +62,6 @@ export default function withCallbackRoutes<S>(
         );
         runSetState();
       });
-      const runSetState = pipe(
-        newStateFromRoute(this.state, history.location, history.action),
-        T.map((a) => this.updateStateWithRoute(a)),
-      );
-      runSetState();
     }
 
     render(): JSX.Element {
