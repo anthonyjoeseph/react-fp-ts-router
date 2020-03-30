@@ -47,7 +47,7 @@ const parser = R.zero<AppRoute>()
 
 ## Router
 
-Creates a root component with global state managed by formatters and parsers from [fp-ts-routing](https://github.com/gcanti/fp-ts-routing) (uses `createBrowserHistory` from [history](https://github.com/ReactTraining/history#readme) for the actual routing).
+Creates a root component with global state managed by formatters and parsers from [fp-ts-routing](https://github.com/gcanti/fp-ts-routing) (uses `createBrowserHistory` from [history](https://github.com/ReactTraining/history#readme) to listen for actual callbacks).
 
 ### Types
 ```ts
