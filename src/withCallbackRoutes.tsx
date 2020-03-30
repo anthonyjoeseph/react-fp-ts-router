@@ -63,6 +63,13 @@ export default function withCallbackRoutes<S, R>(
         );
         runSetState();
       });
+      const runSetState = pipe(
+        newStateFromRoute(this.state)(
+          parse(parser, Route.parse(history.location.pathname), notFoundRoute),
+        ),
+        T.map((a) => this.updateStateWithRoute(a)),
+      );
+      runSetState();
     }
 
     render(): JSX.Element {

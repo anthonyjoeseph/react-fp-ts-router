@@ -16,7 +16,7 @@
     "immutability-helper": "^3.0.1",
     "io-ts": "^2.1.2",
     "react": "^16.13.1",
-    "react-callback-router": "^1.0.5",
+    "react-callback-router": "^1.0.7",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
     "typescript": "~3.7.2",

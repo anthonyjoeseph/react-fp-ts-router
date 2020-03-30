@@ -1,5 +1,5 @@
 {
-  "name": "react-callback-router",
+  "name": "react-fp-ts-router",
   "version": "1.0.7",
   "description": "Updates global state with a routing callback, and narrows global state type further down the component tree.",
   "main": "dist/index.js",
