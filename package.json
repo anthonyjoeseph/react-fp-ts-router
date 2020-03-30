@@ -1,6 +1,6 @@
 {
   "name": "react-callback-router",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Updates global state with a routing callback, and narrows global state type further down the component tree.",
   "main": "dist/index.js",
   "repository": "https://github.com/anthonyjoeseph/react-callback-router",
@@ -11,14 +11,16 @@
   "peerDependencies": {
     "react": ">= 16.13.1"
   },
-  "devDependencies": {
+  "dependencies": {
     "@types/history": "^4.7.5",
     "@types/react": "^16.9.27",
+    "fp-ts": "^2.5.3",
+    "history": "^4.10.1"
+  },
+  "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.25.0",
     "@typescript-eslint/parser": "^2.25.0",
     "eslint": "^6.8.0",
-    "history": "^4.10.1",
-    "typescript": "^3.8.3",
-    "fp-ts": "^2.5.3"
+    "typescript": "^3.8.3"
   }
 }
