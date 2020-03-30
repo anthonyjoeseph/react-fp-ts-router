@@ -8,7 +8,7 @@ Vaguely inspired by [real world halogen](https://github.com/thomashoneyman/pures
 Thanks to Giulio Canti for [fp-ts](https://github.com/gcanti/fp-ts) and [fp-ts-routing](https://github.com/gcanti/fp-ts-routing)
 
 ## Installation
-yarn add react-fp-ts-router
+`yarn add react-fp-ts-router`
 
 ## Globals You Must Create
 
@@ -121,7 +121,7 @@ const NoTextRoute = withNarrowerAppState(
   ({
     updateState
   }: {
-    appState: AppState & NotExists;
+    appState: {};
     updateState: UpdateState<AppState, AppRoute>;
   }) => (
     <div>
@@ -144,7 +144,7 @@ const HasTextRoute = withNarrowerAppState(
     appState,
     updateState
   }: {
-    appState: AppState & Exists;
+    appState: { text: string };
     updateState: UpdateState<AppState, AppRoute>;
   }) => (
     <div>
@@ -159,6 +159,6 @@ const HasTextRoute = withNarrowerAppState(
       </button>
     </div>
   ),
-  (appState: AppState): appState is AppState & Exists => appState.text !== undefined
+  (appState: AppState): appState is { text: string } => appState.text !== undefined
 );
 ```
