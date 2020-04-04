@@ -2,6 +2,9 @@
 // Generated with fp-ts-codegen
 // https://gcanti.github.io/fp-ts-codegen/
 
+import { Prism } from "monocle-ts";
+import { Eq, fromEquals } from "fp-ts/lib/Eq";
+
 export type NavigationRequest<R> = {
   readonly type: "push";
   readonly value0: R;
@@ -47,8 +50,6 @@ export function fold<R, R1>(onpush: (value0: R) => R1, onreplace: (value0: R) =>
   case "goForward": return ongoForward();
 } }; }
 
-import { Prism } from "monocle-ts";
-
 export function _push<R>(): Prism<NavigationRequest<R>, NavigationRequest<R>> { return Prism.fromPredicate(s => s.type === "push"); }
 
 export function _replace<R>(): Prism<NavigationRequest<R>, NavigationRequest<R>> { return Prism.fromPredicate(s => s.type === "replace"); }
@@ -63,7 +64,6 @@ export function _goBack<R>(): Prism<NavigationRequest<R>, NavigationRequest<R>> 
 
 export function _goForward<R>(): Prism<NavigationRequest<R>, NavigationRequest<R>> { return Prism.fromPredicate(s => s.type === "goForward"); }
 
-import { Eq, fromEquals } from "fp-ts/lib/Eq";
 
 export function getEq<R>(eqpushValue0: Eq<R>, eqreplaceValue0: Eq<R>, eqpushExtValue0: Eq<string>, eqreplaceExtValue0: Eq<R>, eqgoValue0: Eq<number>): Eq<NavigationRequest<R>> { return fromEquals((x, y) => { if (x.type === "push" && y.type === "push") {
   return eqpushValue0.equals(x.value0, y.value0);
