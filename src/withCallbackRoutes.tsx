@@ -11,16 +11,16 @@ export type DefaultStateFromRoute<S, R> = (
   navResponse: NS.NavigationResponse,
 ) => S;
 
-export type StateTaskFromRoute<S extends K, R, K = S> = (
+export type StateTaskFromRoute<S, R, K extends keyof S = keyof S> = (
   appState: S,
   navResponse: NS.NavigationResponse,
 ) => (
   route: R,
-) => T.Task<Pick<S, keyof K>>;
+) => T.Task<Pick<S, K> | null>;
 
-interface AppStateProps<S extends K, K = S> {
+interface AppStateProps<S, K extends keyof S = keyof S> {
   appState: S;
-  updateState: (state: Pick<S, keyof K>) => void;
+  updateState: (state: Pick<S, K> | null) => void;
 }
 
 const history = History.createBrowserHistory();
@@ -71,7 +71,6 @@ export default function withCallbackRoutes<S, R>(
       parse(parser, Route.parse(history.location.pathname), notFoundRoute),
       actionToNavResp(history.action),
     );
-
     public componentDidMount(): void {
       history.listen((location, action) => {
         const runSetState = pipe(
@@ -80,7 +79,6 @@ export default function withCallbackRoutes<S, R>(
           ),
           T.map((a) => this.setState(a)),
         );
-        this.setState
         runSetState();
       });
       const runSetState = pipe(
