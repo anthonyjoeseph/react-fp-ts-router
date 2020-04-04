@@ -16,7 +16,7 @@ export type StateTaskFromRoute<S, R> = (
   navResponse: NS.NavigationResponse,
 ) => (
   route: R,
-) => T.Task<S>;
+) => T.Task<Pick<S, keyof S>>;
 
 interface AppStateProps<S, R> {
   appState: S;
