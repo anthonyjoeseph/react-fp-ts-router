@@ -11,16 +11,16 @@ export type DefaultStateFromRoute<S, R> = (
   navResponse: NS.NavigationResponse,
 ) => S;
 
-export type StateTaskFromRoute<S, R, K extends keyof S = keyof S> = (
+export type StateTaskFromRoute<S, R> = (
   appState: S,
   navResponse: NS.NavigationResponse,
 ) => (
   route: R,
-) => T.Task<Pick<S, K> | null>;
+) => T.Task<Partial<S>>;
 
-interface AppStateProps<S, K extends keyof S = keyof S> {
+interface AppStateProps<S> {
   appState: S;
-  updateState: (state: Pick<S, K> | null) => void;
+  updateState: (state: Partial<S>) => void;
 }
 
 const history = History.createBrowserHistory();
@@ -77,7 +77,7 @@ export default function withCallbackRoutes<S, R>(
           newStateFromRoute(this.state, actionToNavResp(action))(
             parse(parser, Route.parse(location.pathname), notFoundRoute),
           ),
-          T.map((a) => this.setState(a)),
+          T.map(this.safeSetState),
         );
         runSetState();
       });
@@ -85,16 +85,19 @@ export default function withCallbackRoutes<S, R>(
         newStateFromRoute(this.state, actionToNavResp(history.action))(
           parse(parser, Route.parse(history.location.pathname), notFoundRoute),
         ),
-        T.map((a) => this.setState(a)),
+        T.map(this.safeSetState),
       );
       runSetState();
     }
+    private safeSetState = (a: Partial<S>): void => Object.keys(a).length > 0
+      ? this.setState(a as Pick<S, keyof S>)
+      : undefined;
 
     render(): JSX.Element {
       return (
         <Root
           appState={this.state}
-          updateState={this.setState}
+          updateState={this.safeSetState}
         />
       );
     }
