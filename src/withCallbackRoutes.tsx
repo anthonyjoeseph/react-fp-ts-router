@@ -3,32 +3,47 @@ import * as T from 'fp-ts/lib/Task';
 import { pipe } from 'fp-ts/lib/pipeable';
 import * as History from 'history';
 import { parse, Route, Parser } from 'fp-ts-routing';
-
-export interface AppStateWithRoute<S, R> {
-  appState?: Pick<S, keyof S>;
-  route?: Route;
-}
-
-export type UpdateState<S, R> = (a: AppStateWithRoute<S, R>) => void
+import * as NQ from './NavigationRequest';
+import * as NS from './NavigationResponse';
 
 export type DefaultStateFromRoute<S, R> = (
   route: R,
-  location?: History.Location<History.LocationState>,
-  action?: History.Action,
+  navResponse: NS.NavigationResponse,
 ) => S;
 
 export type StateTaskFromRoute<S, R> = (
   appState: S,
-  location?: History.Location<History.LocationState>,
-  action?: History.Action,
+  navResponse: NS.NavigationResponse,
 ) => (
   route: R,
-) => T.Task<AppStateWithRoute<S, R>>;
+) => T.Task<S>;
 
 interface AppStateProps<S, R> {
   appState: S;
-  updateState: UpdateState<S, R>;
+  updateState: (state: Pick<S, keyof S>) => void;
 }
+
+const history = History.createBrowserHistory();
+
+export function navigate <R>(
+  unParser: ((r: R) => string),
+): (r: NQ.NavigationRequest<R>) => void {
+  return NQ.fold<R, void>(
+    (route) => history.push(unParser(route).toString()),
+    (route) => history.replace(unParser(route).toString()),
+    (route) => history.push(route),
+    (route) => history.replace(route),
+    (numSessions) => history.go(numSessions),
+    () => history.goBack(),
+    () => history.goForward(),
+  );
+} 
+
+const actionToNavResp = (a: History.Action): NS.NavigationResponse => {
+  if (a === 'PUSH') return NS.push;
+  if (a === 'POP') return NS.pop;
+  return NS.replace;
+};
 
 /**
  * Creates a root component with global state managed by a functional router
@@ -50,42 +65,28 @@ export default function withCallbackRoutes<S, R>(
   newStateFromRoute: StateTaskFromRoute<S, R>,
 ): React.ComponentType<{}>{
 
-  const history = History.createBrowserHistory();
-
   return class CallbackRoutes extends Component<{}, S>{
     
     public state = defaultStateFromRoute(
-      parse(parser, Route.parse(history.location.pathname), notFoundRoute)
+      parse(parser, Route.parse(history.location.pathname), notFoundRoute),
+      actionToNavResp(history.action),
     );
-
-    private updateStateWithRoute = (a: AppStateWithRoute<S, R>): void => {
-      const { appState, route } = a;
-      if (appState) {
-        this.setState(appState, () => {
-          if (route) {
-            history.push(route.toString());
-          }
-        });
-      } else if (route) {
-        history.push(route.toString());
-      }
-    }
 
     public componentDidMount(): void {
       history.listen((location, action) => {
         const runSetState = pipe(
-          newStateFromRoute(this.state, location, action)(
+          newStateFromRoute(this.state, actionToNavResp(action))(
             parse(parser, Route.parse(location.pathname), notFoundRoute),
           ),
-          T.map((a) => this.updateStateWithRoute(a)),
+          T.map((a) => this.setState(a)),
         );
         runSetState();
       });
       const runSetState = pipe(
-        newStateFromRoute(this.state, history.location, history.action)(
+        newStateFromRoute(this.state, actionToNavResp(history.action))(
           parse(parser, Route.parse(history.location.pathname), notFoundRoute),
         ),
-        T.map((a) => this.updateStateWithRoute(a)),
+        T.map((a) => this.setState(a)),
       );
       runSetState();
     }
@@ -94,7 +95,7 @@ export default function withCallbackRoutes<S, R>(
       return (
         <Root
           appState={this.state}
-          updateState={(a): void => this.updateStateWithRoute(a)}
+          updateState={this.setState}
         />
       );
     }
