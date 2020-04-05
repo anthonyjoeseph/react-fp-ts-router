@@ -18,12 +18,11 @@ export type Router<S, R> = (
 ) => (
   newRoute: R,
   oldRoute: R,
-) => RouterResponse<S, R>;
+) => RouterResponse<S>;
 
-export interface RouterResponse<S, R> {
+export interface RouterResponse<S> {
   syncState?: Partial<S>;
   asyncState?:  T.Task<Partial<S>>;
-  redirectedToRoute?: R;
 }
 
 interface AppStateProps<S, R> {
@@ -66,7 +65,7 @@ const actionToNavResp = (a: History.Action): NS.NavigationResponse => {
  * @param defaultStateFromRoute - Populates app's global state before component is mounted
  * @param router - Callback on component mount and route change
  */
-export default function withCallbackRoutes<S, R>(
+export default function withRouter<S, R>(
   Root: React.ComponentType<AppStateProps<S, R>>,
   parser: Parser<R>,
   notFoundRoute: R,
@@ -90,20 +89,19 @@ export default function withCallbackRoutes<S, R>(
         {
           syncState,
           asyncState,
-          redirectedToRoute,
-        }: RouterResponse<S, R>
+        }: RouterResponse<S>
       ): void => {
         if (syncState) {
           this.setState({
             ...syncState,
-            route: redirectedToRoute ? redirectedToRoute : newRoute,
+            route: newRoute,
           } as Pick<S & { route: R }, "route">);
         }
         const runSetState = pipe(
           O.fromNullable(asyncState),
           O.map(someAsync => pipe(
             someAsync,
-            T.map(this.safeSetState),
+            T.map(this.unsafeSetState),
             T.map(() => undefined),
           )),
           O.getOrElse(() => T.of(undefined)),
@@ -129,15 +127,16 @@ export default function withCallbackRoutes<S, R>(
         )
       );
     }
-    private safeSetState = (a: Partial<S> | undefined): void => a !== undefined
-      ? this.setState(a as Pick<S & { route: R }, keyof S | "route">)
-      : undefined;
+    
+    private unsafeSetState = (a: Partial<S>): void => this.setState(
+      a as Pick<S & { route: R }, keyof S | "route">
+    );
 
     render(): JSX.Element {
       return (
         <Root
           appState={this.state}
-          updateState={this.safeSetState}
+          updateState={this.unsafeSetState}
           route={this.state.route}
         />
       );
