@@ -17,7 +17,13 @@ export type Router<S, R> = (
   navResponse: NS.NavigationResponse,
 ) => (
   route: R,
-) => [Partial<S> | undefined, T.Task<Partial<S>> | undefined];
+) => RouterResponse<S>;
+
+export interface RouterResponse<S> {
+  syncState?: Partial<S>;
+  asyncState?:  T.Task<Partial<S>>;
+  updateRouteInState?: boolean;
+}
 
 interface AppStateProps<S, R> {
   appState: S;
@@ -80,15 +86,18 @@ export default function withCallbackRoutes<S, R>(
     public componentDidMount(): void {
       const handleNewStates = (
         newRoute: R,
-        [syncState, asyncState]: [
-          Partial<S> | undefined,
-          T.Task<Partial<S>> | undefined,
-        ]
+        {
+          syncState,
+          asyncState,
+          updateRouteInState,
+        }: RouterResponse<S>
       ): void => {
-        this.setState({
-          ...syncState,
-          route: newRoute,
-        } as Pick<S & { route: R }, "route">);
+        if (syncState && updateRouteInState) {
+          this.setState({
+            ...syncState,
+            route: newRoute,
+          } as Pick<S & { route: R }, "route">);
+        }
         const runSetState = pipe(
           O.fromNullable(asyncState),
           O.map(someAsync => pipe(
