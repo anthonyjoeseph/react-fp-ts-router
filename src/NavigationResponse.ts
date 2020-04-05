@@ -2,9 +2,12 @@
 // Generated with fp-ts-codegen
 // https://gcanti.github.io/fp-ts-codegen/
 
+/**
+ * data NavigationResponse = push | pop | replace
+ */
+
 import { Prism } from "monocle-ts";
 import { Eq, fromEquals } from "fp-ts/lib/Eq";
-
 export type NavigationResponse = {
   readonly type: "push";
 } | {
@@ -19,10 +22,14 @@ export const pop: NavigationResponse = { type: "pop" };
 
 export const replace: NavigationResponse = { type: "replace" };
 
-export function fold<R>(onpush: () => R, onpop: () => R, onreplace: () => R): (fa: NavigationResponse) => R { return fa => { switch (fa.type) {
-  case "push": return onpush();
-  case "pop": return onpop();
-  case "replace": return onreplace();
+export function fold<R>(handlers: {
+  onpush: () => R;
+  onpop: () => R;
+  onreplace: () => R;
+}): (fa: NavigationResponse) => R { return fa => { switch (fa.type) {
+  case "push": return handlers.onpush();
+  case "pop": return handlers.onpop();
+  case "replace": return handlers.onreplace();
 } }; }
 
 export const _push: Prism<NavigationResponse, NavigationResponse> = Prism.fromPredicate(s => s.type === "push");

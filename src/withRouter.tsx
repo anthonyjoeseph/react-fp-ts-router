@@ -21,13 +21,13 @@ export type Router<S, R> = (
 ) => RouterResponse<S>;
 
 export interface RouterResponse<S> {
-  syncState?: Partial<S>;
-  asyncState?:  T.Task<Partial<S>>;
+  syncState?: S;
+  asyncState?:  T.Task<S>;
 }
 
 interface AppStateProps<S, R> {
   appState: S;
-  updateState: (state: Partial<S>) => void;
+  updateState: (state: S | undefined) => void;
   route: R;
 }
 
@@ -36,15 +36,15 @@ const history = History.createBrowserHistory();
 export function createNavigator <R>(
   unParser: ((r: R) => string),
 ): (r: NQ.NavigationRequest<R>) => void {
-  return NQ.fold<R, void>(
-    (route) => history.push(unParser(route).toString()),
-    (route) => history.replace(unParser(route).toString()),
-    (route) => history.push(route),
-    (route) => history.replace(route),
-    (numSessions) => history.go(numSessions),
-    () => history.goBack(),
-    () => history.goForward(),
-  );
+  return NQ.fold<R, void>({
+    onpush: (route) => history.push(unParser(route).toString()),
+    onreplace: (route) => history.replace(unParser(route).toString()),
+    onpushExt: (route) => history.push(route),
+    onreplaceExt: (route) => history.replace(route),
+    ongo: (numSessions) => history.go(numSessions),
+    ongoBack: () => history.goBack(),
+    ongoForward: () => history.goForward(),
+  });
 } 
 
 const actionToNavResp = (a: History.Action): NS.NavigationResponse => {
@@ -74,34 +74,35 @@ export default function withRouter<S, R>(
 ): React.ComponentType<{}>{
   const firstRoute = parse(parser, Route.parse(history.location.pathname), notFoundRoute);
   const defaultState = ({
-    ...defaultStateFromRoute(
+    appState: defaultStateFromRoute(
       firstRoute,
       actionToNavResp(history.action),
     ),
     route: firstRoute,
   });
-  return class CallbackRoutes extends Component<{}, S & { route: R }>{
+  return class CallbackRoutes extends Component<{}, { appState: S; route: R }>{
     
     public state = defaultState;
     public componentDidMount(): void {
       const handleNewStates = (
         newRoute: R,
-        {
-          syncState,
-          asyncState,
-        }: RouterResponse<S>
+        { syncState, asyncState }: RouterResponse<S>
       ): void => {
         if (syncState) {
           this.setState({
-            ...syncState,
+            appState: syncState,
             route: newRoute,
-          } as Pick<S & { route: R }, "route">);
+          });
+        } else {
+          this.setState({
+            route: newRoute,
+          })
         }
         const runSetState = pipe(
           O.fromNullable(asyncState),
           O.map(someAsync => pipe(
             someAsync,
-            T.map(this.unsafeSetState),
+            T.map(this.safeSetState),
             T.map(() => undefined),
           )),
           O.getOrElse(() => T.of(undefined)),
@@ -112,7 +113,7 @@ export default function withRouter<S, R>(
         const newRoute = parse(parser, Route.parse(location.pathname), notFoundRoute);
         handleNewStates(
           newRoute,
-          router(this.state, actionToNavResp(action))(
+          router(this.state.appState, actionToNavResp(action))(
             newRoute,
             this.state.route,
           )
@@ -121,22 +122,22 @@ export default function withRouter<S, R>(
       const newRoute = parse(parser, Route.parse(history.location.pathname), notFoundRoute);
       handleNewStates(
         newRoute,
-        router(this.state, actionToNavResp(history.action))(
+        router(this.state.appState, actionToNavResp(history.action))(
           newRoute,
           this.state.route,
         )
       );
     }
     
-    private unsafeSetState = (a: Partial<S>): void => this.setState(
-      a as Pick<S & { route: R }, keyof S | "route">
-    );
+    private safeSetState = (s: S | undefined): void => {
+      if (s) this.setState({ appState: s });
+    }
 
     render(): JSX.Element {
       return (
         <Root
-          appState={this.state}
-          updateState={this.unsafeSetState}
+          appState={this.state.appState}
+          updateState={this.safeSetState}
           route={this.state.route}
         />
       );
