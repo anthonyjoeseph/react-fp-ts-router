@@ -9,25 +9,33 @@ import * as NS from './NavigationResponse';
 
 export type DefaultStateFromRoute<S, R> = (
   route: R,
-  navResponse: NS.NavigationResponse,
+  navigationResponse: NS.NavigationResponse,
 ) => S;
+
+export type UpdateState<S, R> = (s: StateWithRequest<S, R>) => void;
+
+export interface StateWithRequest<S, R> {
+  state?: S;
+  route?: NQ.NavigationRequest<R>;
+}
 
 export type Router<S, R> = (
   appState: S,
-  navResponse: NS.NavigationResponse,
+  navigationResponse: NS.NavigationResponse,
 ) => (
   newRoute: R,
   oldRoute: R,
-) => RouterResponse<S>;
+) => RouterResponse<S, R>;
 
-export interface RouterResponse<S> {
-  syncState?: S;
-  asyncState?:  T.Task<S>;
+export interface RouterResponse<S, R> {
+  sync?: StateWithRequest<S, R>;
+  async?:  T.Task<StateWithRequest<S, R>>;
 }
 
 interface AppStateProps<S, R> {
   appState: S;
-  updateState: (state: S | undefined) => void;
+  route: R;
+  update: (s: StateWithRequest<S, R>) => void;
 }
 
 const actionToNavResp = (a: History.Action): NS.NavigationResponse => {
@@ -37,29 +45,6 @@ const actionToNavResp = (a: History.Action): NS.NavigationResponse => {
 };
 
 const history = History.createBrowserHistory();
-
-export const getLatestNavResponse = (): NS.NavigationResponse => actionToNavResp(history.action);
-
-export function createGetRoute <R>(
-  parser: Parser<R>,
-  notFoundRoute: R,
-): () => R  {
-  return (): R => parse(parser, Route.parse(history.location.pathname), notFoundRoute);
-}
-
-export function createChangeRoute <R>(
-  unParser: ((r: R) => string),
-): (r: NQ.NavigationRequest<R>) => void {
-  return NQ.fold<R, void>({
-    onpush: (route) => history.push(unParser(route).toString()),
-    onreplace: (route) => history.replace(unParser(route).toString()),
-    onpushExt: (route) => history.push(route),
-    onreplaceExt: (route) => history.replace(route),
-    ongo: (numSessions) => history.go(numSessions),
-    ongoBack: () => history.goBack(),
-    ongoForward: () => history.goForward(),
-  });
-}
 
 /**
  * Creates a root component with global state managed by a functional router
@@ -76,6 +61,7 @@ export function createChangeRoute <R>(
 export default function withRouter<S, R>(
   Root: React.ComponentType<AppStateProps<S, R>>,
   parser: Parser<R>,
+  unParser: ((r: R) => string),
   notFoundRoute: R,
   defaultStateFromRoute: DefaultStateFromRoute<S, R>,
   router: Router<S, R>,
@@ -88,24 +74,35 @@ export default function withRouter<S, R>(
     ),
     route: firstRoute,
   });
-  return class CallbackRoutes extends Component<{}, { appState: S }>{
+  const changeRoute = NQ.fold<R, void>({
+    onpush: (route) => history.push(unParser(route).toString()),
+    onreplace: (route) => history.replace(unParser(route).toString()),
+    onpushExt: (route) => history.push(route),
+    onreplaceExt: (route) => history.replace(route),
+    ongo: (numSessions) => history.go(numSessions),
+    ongoBack: () => history.goBack(),
+    ongoForward: () => history.goForward(),
+  });
+  return class CallbackRoutes extends Component<{}, { appState: S; route: R }>{
     
     public state = defaultState;
     public componentDidMount(): void {
       const handleNewStates = (
         newRoute: R,
-        { syncState, asyncState }: RouterResponse<S>
+        { sync, async }: RouterResponse<S, R>
       ): void => {
-        if (syncState) {
+        if (sync) {
+          this.update(sync);
+        } else {
           this.setState({
-            appState: syncState,
+            route: newRoute,
           });
         }
         const runSetState = pipe(
-          O.fromNullable(asyncState),
+          O.fromNullable(async),
           O.map(someAsync => pipe(
             someAsync,
-            T.map(this.safeSetState),
+            T.map(this.update),
             T.map(() => undefined),
           )),
           O.getOrElse(() => T.of(undefined)),
@@ -132,15 +129,24 @@ export default function withRouter<S, R>(
       );
     }
     
-    private safeSetState = (s: S | undefined): void => {
-      if (s) this.setState({ appState: s });
+    private update = ({ route, state }: StateWithRequest<S, R>): void => {
+      if (route && state) {
+        this.setState({ appState: state }, () => {
+          changeRoute(route);
+        });
+      } else if (route) {
+        changeRoute(route);
+      } else if (state) {
+        this.setState({ appState: state });
+      }
     }
 
     render(): JSX.Element {
       return (
         <Root
           appState={this.state.appState}
-          updateState={this.safeSetState}
+          route={this.state.route}
+          update={this.update}
         />
       );
     }
