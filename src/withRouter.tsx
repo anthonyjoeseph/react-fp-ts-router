@@ -19,9 +19,10 @@ export type Router<S, R> = (
   route: R,
 ) => [Partial<S> | undefined, T.Task<Partial<S>> | undefined];
 
-interface AppStateProps<S> {
+interface AppStateProps<S, R> {
   appState: S;
   updateState: (state: Partial<S>) => void;
+  route: R;
 }
 
 const history = History.createBrowserHistory();
@@ -59,25 +60,35 @@ const actionToNavResp = (a: History.Action): NS.NavigationResponse => {
  * @param router - Callback on component mount and route change
  */
 export default function withCallbackRoutes<S, R>(
-  Root: React.ComponentType<AppStateProps<S>>,
+  Root: React.ComponentType<AppStateProps<S, R>>,
   parser: Parser<R>,
   notFoundRoute: R,
   defaultStateFromRoute: DefaultStateFromRoute<S, R>,
   router: Router<S, R>,
 ): React.ComponentType<{}>{
-
-  return class CallbackRoutes extends Component<{}, S>{
-    
-    public state = defaultStateFromRoute(
-      parse(parser, Route.parse(history.location.pathname), notFoundRoute),
+  const firstRoute = parse(parser, Route.parse(history.location.pathname), notFoundRoute);
+  const defaultState = ({
+    ...defaultStateFromRoute(
+      firstRoute,
       actionToNavResp(history.action),
-    );
+    ),
+    route: firstRoute,
+  });
+  return class CallbackRoutes extends Component<{}, S & { route: R }>{
+    
+    public state = defaultState;
     public componentDidMount(): void {
-      const handleNewStates = ([syncState, asyncState]: [
-        Partial<S> | undefined,
-        T.Task<Partial<S>> | undefined,
-      ]): void => {
-        this.safeSetState(syncState);
+      const handleNewStates = (
+        newRoute: R,
+        [syncState, asyncState]: [
+          Partial<S> | undefined,
+          T.Task<Partial<S>> | undefined,
+        ]
+      ): void => {
+        this.setState({
+          ...syncState,
+          route: newRoute,
+        } as Pick<S & { route: R }, "route">);
         const runSetState = pipe(
           O.fromNullable(asyncState),
           O.map(someAsync => pipe(
@@ -90,20 +101,24 @@ export default function withCallbackRoutes<S, R>(
         runSetState();
       };
       history.listen((location, action) => {
+        const newRoute = parse(parser, Route.parse(location.pathname), notFoundRoute);
         handleNewStates(
+          newRoute,
           router(this.state, actionToNavResp(action))(
-            parse(parser, Route.parse(location.pathname), notFoundRoute),
+            newRoute,
           )
         );
       });
+      const newRoute = parse(parser, Route.parse(history.location.pathname), notFoundRoute);
       handleNewStates(
+        newRoute,
         router(this.state, actionToNavResp(history.action))(
-          parse(parser, Route.parse(history.location.pathname), notFoundRoute),
+          newRoute,
         )
       );
     }
     private safeSetState = (a: Partial<S> | undefined): void => a !== undefined
-      ? this.setState(a as Pick<S, keyof S>)
+      ? this.setState(a as Pick<S & { route: R }, keyof S | "route">)
       : undefined;
 
     render(): JSX.Element {
@@ -111,6 +126,7 @@ export default function withCallbackRoutes<S, R>(
         <Root
           appState={this.state}
           updateState={this.safeSetState}
+          route={this.state.route}
         />
       );
     }
