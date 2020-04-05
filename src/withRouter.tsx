@@ -38,14 +38,13 @@ const actionToNavResp = (a: History.Action): NS.NavigationResponse => {
 
 const history = History.createBrowserHistory();
 
-export function createGetRouteData <R>(
+export const getLatestNavResponse = (): NS.NavigationResponse => actionToNavResp(history.action);
+
+export function createGetRoute <R>(
   parser: Parser<R>,
   notFoundRoute: R,
-): () => { route: R; navResponse: NS.NavigationResponse }  {
-  return (): { route: R; navResponse: NS.NavigationResponse } => ({
-    route: parse(parser, Route.parse(history.location.pathname), notFoundRoute),
-    navResponse: actionToNavResp(history.action),
-  });
+): () => R  {
+  return (): R => parse(parser, Route.parse(history.location.pathname), notFoundRoute);
 }
 
 export function createChangeRoute <R>(
