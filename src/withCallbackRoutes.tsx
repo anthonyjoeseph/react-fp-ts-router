@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import * as T from 'fp-ts/lib/Task';
+import * as O from 'fp-ts/lib/Option';
 import { pipe } from 'fp-ts/lib/pipeable';
 import * as History from 'history';
 import { parse, Route, Parser } from 'fp-ts-routing';
@@ -11,12 +12,12 @@ export type DefaultStateFromRoute<S, R> = (
   navResponse: NS.NavigationResponse,
 ) => S;
 
-export type StateTaskFromRoute<S, R> = (
+export type Router<S, R> = (
   appState: S,
   navResponse: NS.NavigationResponse,
 ) => (
   route: R,
-) => T.Task<Partial<S>>;
+) => [Partial<S> | undefined, T.Task<Partial<S>> | undefined];
 
 interface AppStateProps<S> {
   appState: S;
@@ -25,7 +26,7 @@ interface AppStateProps<S> {
 
 const history = History.createBrowserHistory();
 
-export function navigate <R>(
+export function createNavigator <R>(
   unParser: ((r: R) => string),
 ): (r: NQ.NavigationRequest<R>) => void {
   return NQ.fold<R, void>(
@@ -62,7 +63,7 @@ export default function withCallbackRoutes<S, R>(
   parser: Parser<R>,
   notFoundRoute: R,
   defaultStateFromRoute: DefaultStateFromRoute<S, R>,
-  newStateFromRoute: StateTaskFromRoute<S, R>,
+  router: Router<S, R>,
 ): React.ComponentType<{}>{
 
   return class CallbackRoutes extends Component<{}, S>{
@@ -72,24 +73,36 @@ export default function withCallbackRoutes<S, R>(
       actionToNavResp(history.action),
     );
     public componentDidMount(): void {
-      history.listen((location, action) => {
+      const handleNewStates = ([syncState, asyncState]: [
+        Partial<S> | undefined,
+        T.Task<Partial<S>> | undefined,
+      ]): void => {
+        this.safeSetState(syncState);
         const runSetState = pipe(
-          newStateFromRoute(this.state, actionToNavResp(action))(
-            parse(parser, Route.parse(location.pathname), notFoundRoute),
-          ),
-          T.map(this.safeSetState),
+          O.fromNullable(asyncState),
+          O.map(someAsync => pipe(
+            someAsync,
+            T.map(this.safeSetState),
+            T.map(() => undefined),
+          )),
+          O.getOrElse(() => T.of(undefined)),
         );
         runSetState();
+      };
+      history.listen((location, action) => {
+        handleNewStates(
+          router(this.state, actionToNavResp(action))(
+            parse(parser, Route.parse(location.pathname), notFoundRoute),
+          )
+        );
       });
-      const runSetState = pipe(
-        newStateFromRoute(this.state, actionToNavResp(history.action))(
+      handleNewStates(
+        router(this.state, actionToNavResp(history.action))(
           parse(parser, Route.parse(history.location.pathname), notFoundRoute),
-        ),
-        T.map(this.safeSetState),
+        )
       );
-      runSetState();
     }
-    private safeSetState = (a: Partial<S>): void => Object.keys(a).length > 0
+    private safeSetState = (a: Partial<S> | undefined): void => a !== undefined
       ? this.setState(a as Pick<S, keyof S>)
       : undefined;
 
