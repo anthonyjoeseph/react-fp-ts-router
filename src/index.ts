@@ -2,7 +2,7 @@ import withCallbackRoutes, {
   createNavigator,
   DefaultStateFromRoute,
   Router,
-} from "./withCallbackRoutes";
+} from "./withRouter";
 import withNarrowerAppState from "./withNarrowerAppState";
 
 export default withCallbackRoutes;

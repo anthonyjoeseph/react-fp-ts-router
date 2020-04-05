@@ -56,7 +56,7 @@ const actionToNavResp = (a: History.Action): NS.NavigationResponse => {
  * @param parser - Converts {@link https://gcanti.github.io/fp-ts-routing/modules/index.ts.html#route-class Route} into user-defined route
  * @param notFoundRoute - User-defined route to use when parser can't find a route
  * @param defaultStateFromRoute - Populates app's global state before component is mounted
- * @param newStateFromRoute - Callback on component mount and route change
+ * @param router - Callback on component mount and route change
  */
 export default function withCallbackRoutes<S, R>(
   Root: React.ComponentType<AppStateProps<S>>,
