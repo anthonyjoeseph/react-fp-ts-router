@@ -16,13 +16,14 @@ export type Router<S, R> = (
   appState: S,
   navResponse: NS.NavigationResponse,
 ) => (
-  route: R,
-) => RouterResponse<S>;
+  newRoute: R,
+  oldRoute: R,
+) => RouterResponse<S, R>;
 
-export interface RouterResponse<S> {
+export interface RouterResponse<S, R> {
   syncState?: Partial<S>;
   asyncState?:  T.Task<Partial<S>>;
-  updateRouteInState?: boolean;
+  redirectedToRoute?: R;
 }
 
 interface AppStateProps<S, R> {
@@ -89,13 +90,13 @@ export default function withCallbackRoutes<S, R>(
         {
           syncState,
           asyncState,
-          updateRouteInState,
-        }: RouterResponse<S>
+          redirectedToRoute,
+        }: RouterResponse<S, R>
       ): void => {
-        if (syncState && updateRouteInState) {
+        if (syncState) {
           this.setState({
             ...syncState,
-            route: newRoute,
+            route: redirectedToRoute ? redirectedToRoute : newRoute,
           } as Pick<S & { route: R }, "route">);
         }
         const runSetState = pipe(
@@ -115,6 +116,7 @@ export default function withCallbackRoutes<S, R>(
           newRoute,
           router(this.state, actionToNavResp(action))(
             newRoute,
+            this.state.route,
           )
         );
       });
@@ -123,6 +125,7 @@ export default function withCallbackRoutes<S, R>(
         newRoute,
         router(this.state, actionToNavResp(history.action))(
           newRoute,
+          this.state.route,
         )
       );
     }
