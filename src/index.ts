@@ -1,8 +1,7 @@
 import withRouter, {
-  latestNavigationResponse,
-  createGetRoute,
-  createChangeRoute,
   DefaultStateFromRoute,
+  UpdateState,
+  StateWithRequest,
   Router,
   RouterResponse,
 } from "./withRouter";
@@ -11,10 +10,9 @@ import withNarrowerAppState from "./withNarrowerAppState";
 export default withRouter;
 
 export {
-  latestNavigationResponse,
-  createGetRoute,
-  createChangeRoute,
   withNarrowerAppState,
+  UpdateState,
+  StateWithRequest,
   DefaultStateFromRoute,
   Router,
   RouterResponse,
