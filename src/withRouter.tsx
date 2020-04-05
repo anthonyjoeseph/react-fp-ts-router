@@ -28,12 +28,27 @@ export interface RouterResponse<S> {
 interface AppStateProps<S, R> {
   appState: S;
   updateState: (state: S | undefined) => void;
-  route: R;
 }
+
+const actionToNavResp = (a: History.Action): NS.NavigationResponse => {
+  if (a === 'PUSH') return NS.push;
+  if (a === 'POP') return NS.pop;
+  return NS.replace;
+};
 
 const history = History.createBrowserHistory();
 
-export function createNavigator <R>(
+export function createGetRouteData <R>(
+  parser: Parser<R>,
+  notFoundRoute: R,
+): () => { route: R; navResponse: NS.NavigationResponse }  {
+  return (): { route: R; navResponse: NS.NavigationResponse } => ({
+    route: parse(parser, Route.parse(history.location.pathname), notFoundRoute),
+    navResponse: actionToNavResp(history.action),
+  });
+}
+
+export function createChangeRoute <R>(
   unParser: ((r: R) => string),
 ): (r: NQ.NavigationRequest<R>) => void {
   return NQ.fold<R, void>({
@@ -45,13 +60,7 @@ export function createNavigator <R>(
     ongoBack: () => history.goBack(),
     ongoForward: () => history.goForward(),
   });
-} 
-
-const actionToNavResp = (a: History.Action): NS.NavigationResponse => {
-  if (a === 'PUSH') return NS.push;
-  if (a === 'POP') return NS.pop;
-  return NS.replace;
-};
+}
 
 /**
  * Creates a root component with global state managed by a functional router
@@ -80,7 +89,7 @@ export default function withRouter<S, R>(
     ),
     route: firstRoute,
   });
-  return class CallbackRoutes extends Component<{}, { appState: S; route: R }>{
+  return class CallbackRoutes extends Component<{}, { appState: S }>{
     
     public state = defaultState;
     public componentDidMount(): void {
@@ -91,12 +100,7 @@ export default function withRouter<S, R>(
         if (syncState) {
           this.setState({
             appState: syncState,
-            route: newRoute,
           });
-        } else {
-          this.setState({
-            route: newRoute,
-          })
         }
         const runSetState = pipe(
           O.fromNullable(asyncState),
@@ -138,7 +142,6 @@ export default function withRouter<S, R>(
         <Root
           appState={this.state.appState}
           updateState={this.safeSetState}
-          route={this.state.route}
         />
       );
     }
