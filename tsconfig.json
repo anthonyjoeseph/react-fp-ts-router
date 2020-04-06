@@ -5,10 +5,10 @@
     "lib": ["es2015"],                             /* Specify library files to be included in the compilation. */
     "jsx": "react",                     /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
     "declaration": true,                   /* Generates corresponding '.d.ts' file. */
-    "outDir": "./dist",                        /* Redirect output structure to the directory. */
+    "outDir": "lib",                        /* Redirect output structure to the directory. */
     "strict": true,                           /* Enable all strict type-checking options. */
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
   },
-  "exclude": ["example", "dist", "node_modules"]
+  "exclude": ["example", "lib", "node_modules"]
 }

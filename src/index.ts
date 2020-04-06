@@ -1,19 +1,17 @@
-import withRouter, {
-  DefaultStateFromRoute,
-  UpdateState,
-  StateWithRequest,
-  Router,
-  RouterResponse,
-} from "./withRouter";
-import withNarrowerAppState from "./withNarrowerAppState";
+import withManagedStateRouter, {
+  UpdateRouter,
+  ManageRouter,
+  RoutingResponse,
+  ManagedStateRouterProps,
+  OnRoute,
+} from "./withManagedStateRouter";
 
-export default withRouter;
+export default withManagedStateRouter;
 
 export {
-  withNarrowerAppState,
-  UpdateState,
-  StateWithRequest,
-  DefaultStateFromRoute,
-  Router,
-  RouterResponse,
+  UpdateRouter,
+  ManageRouter,
+  RoutingResponse,
+  ManagedStateRouterProps,
+  OnRoute,
 };
