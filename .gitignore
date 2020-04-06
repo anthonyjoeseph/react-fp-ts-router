@@ -1,4 +1,4 @@
-dist
+lib
 node_modules
 
 #copy of example project's gitignore
