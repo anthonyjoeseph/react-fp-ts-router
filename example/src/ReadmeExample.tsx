@@ -5,7 +5,6 @@ import * as U from 'unionize';
 import {
   withCallbackRoutes, withNarrowerAppState, UpdateState,
 } from "react-fp-ts-router";
-import { homeDuplex } from './logic/RouteTypes';
 
 interface AppState {
   text?: string;
@@ -59,7 +58,7 @@ const HasTextRoute = withNarrowerAppState(
       <button
         onClick={() => updateState({
           appState: { text: undefined },
-          route: homeDuplex.formatter.run(R.Route.empty, {}),
+          route: Landing.formatter.run(R.Route.empty, {}),
         })}
       >
         go to landing
