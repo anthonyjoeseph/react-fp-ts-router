@@ -1,16 +1,16 @@
 import React from 'react';
 import * as E from 'fp-ts/lib/Either';
-import { UpdateState } from 'react-fp-ts-router';
-import { AS, LoadingError } from '../logic/AppState';
-import { homeDuplex, AppRoute } from '../logic/RouteTypes';
-import { Route } from 'fp-ts-routing';
+import { UpdateRouter } from 'react-fp-ts-router';
+import * as N from 'react-fp-ts-router/lib/Navigation';
+import { AppState, LoadingError } from '../logic/AppState';
+import { AppRoute } from '../logic/RouteTypes';
 
-export default ({ updateState }: { updateState: UpdateState<AS, AppRoute> }) => (
+export default ({ updateRouter }: { updateRouter: UpdateRouter<AppState, AppRoute> }) => (
   <button
     onClick={() => {
-      updateState({
-        appState: { squirrelStuff: E.left(LoadingError.NOT_LOADED()) },
-        route: homeDuplex.formatter.run(Route.empty, {}),
+      updateRouter({
+        newState: E.left(LoadingError.NOT_LOADED()),
+        navigation: N.push(AppRoute.Home()),
       })
     }}
   >

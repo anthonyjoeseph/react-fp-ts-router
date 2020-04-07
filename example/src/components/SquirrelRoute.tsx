@@ -1,18 +1,17 @@
 import React from 'react';
-import * as E from 'fp-ts/lib/Either';
-import { UpdateState, withNarrowerAppState } from 'react-fp-ts-router';
-import { AS, SS } from '../logic/AppState';
+import { UpdateRouter } from 'react-fp-ts-router';
+import { AppState } from '../logic/AppState';
 import DismissSquirrelButton from './DismissSquirrelButton';
 import { AppRoute } from '../logic/RouteTypes';
 
 const SquirrelRoute = ({
-  appState,
-  updateState,
-  customColor,
+  id,
+  name,
+  updateRouter,
 }: {
-  appState: AS & SS;
-  updateState: UpdateState<AS, AppRoute>;
-  customColor: string;
+  id: number;
+  name: string;
+  updateRouter: UpdateRouter<AppState, AppRoute>;
 }) => (
   <div
     style={{
@@ -20,16 +19,12 @@ const SquirrelRoute = ({
       flexDirection: 'column',
     }}
   >
-    <div>squirrel id: {appState.squirrelStuff.right.id}</div>
-    <div>squirrel name: {appState.squirrelStuff.right.name}</div>
-    <div>custom color: {customColor}</div>
+    <div>squirrel id: {id}</div>
+    <div>squirrel name: {name}</div>
     <DismissSquirrelButton
-      updateState={updateState}
+      updateRouter={updateRouter}
     />
   </div>
 );
 
-export default withNarrowerAppState(
-  SquirrelRoute,
-  (a: AS): a is AS & SS => E.isRight(a.squirrelStuff),
-);
+export default SquirrelRoute;

@@ -8507,10 +8507,10 @@ react-error-overlay@^6.0.7:
   resolved "https://registry.yarnpkg.com/react-error-overlay/-/react-error-overlay-6.0.7.tgz#1dcfb459ab671d53f660a991513cb2f0a0553108"
   integrity sha512-TAv1KJFh3RhqxNvhzxj6LeT5NWklP6rDr2a0jaTfsZ5wSZWHOGeqQyejUp3xxLfPt2UpyJEcVQB/zyPcmonNFA==
 
-react-fp-ts-router@^0.0.19:
-  version "0.0.19"
-  resolved "https://registry.yarnpkg.com/react-fp-ts-router/-/react-fp-ts-router-0.0.19.tgz#b36aa800a15e4e61309987b7218958b81f220924"
-  integrity sha512-DnrSufQBYLY2eEobh7/xhRVq1GuQ9JzyV4XI0oh8VqnHotWuxV/9lM2bmWknT6TM7dQPaurVBU4krOZ3i8DllA==
+react-fp-ts-router@^0.0.21:
+  version "0.0.21"
+  resolved "https://registry.yarnpkg.com/react-fp-ts-router/-/react-fp-ts-router-0.0.21.tgz#98018f0eb73c5049e7c27672703c5a7a575024bd"
+  integrity sha512-MV/xs0enqJpz5apHv2NI4x2dZr8CEMLar6dLsqbpvtqkgyTStit4CNVOJAwZQUm2Z6Zue7aaCfKnEhHl11m/rg==
   dependencies:
     "@types/history" "^4.7.5"
     "@types/react" "^16.9.27"

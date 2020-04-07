@@ -2,33 +2,28 @@ import React from 'react';
 import * as T from 'fp-ts/lib/Task';
 import * as E from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
-import { AS } from '../logic/AppState';
-import { UpdateState } from 'react-fp-ts-router';
+import { ManagedStateRouterProps, ManageRouter } from 'react-fp-ts-router';
+import * as N from 'react-fp-ts-router/lib/Navigation';
+import { AppState, SquirrelStuff, LoadingError, LoadingErrorType } from '../logic/AppState';
 import SquirrelRoute from './SquirrelRoute';
 import SquirrelErrorRoute from './SquirrelErrorRoute';
-import { getNutErrorFromREST, getTreeErrorFromREST } from '../logic/SquirrelREST';
-import { squirrelDuplex, squirrelErrorDuplex, AppRoute } from '../logic/RouteTypes';
-import { Route } from 'fp-ts-routing';
+import { getNutErrorFromREST, getTreeErrorFromREST, SquirrelErrorType } from '../logic/SquirrelREST';
+import { AppRoute } from '../logic/RouteTypes';
 
 const Landing = ({
-  appState,
-  updateState,
-}: {
-  appState: AS,
-  updateState: UpdateState<AS, AppRoute>,
-}) => {
+  managedState,
+  updateRouter,
+}: ManagedStateRouterProps<AppState, AppRoute> ) => {
   return (
     <div>
       <button
         onClick={() => {
-          updateState({
-            appState: {
-              squirrelStuff: E.right({
-                id: 100,
-                name: 'Rocky',
-              }),
-            },
-            route: squirrelDuplex.formatter.run(Route.empty, {}),
+          updateRouter({
+            newState: E.right({
+              id: 100,
+              name: 'Rocky',
+            }),
+            navigation: N.push(AppRoute.Squirrel()),
           });
         }}
       >
@@ -38,11 +33,11 @@ const Landing = ({
         onClick={() => {
           const runRequest = pipe(
             getNutErrorFromREST(),
-            T.map(resp => ({
-              appState: { squirrelStuff: resp },
-              route: squirrelErrorDuplex.formatter.run(Route.empty, { id: 'nut' }),
+            T.map((newState): ManageRouter<AppState, AppRoute> => ({
+              newState,
+              navigation: N.push(AppRoute.SquirrelError({ type: 'nut' })),
             })),
-            T.map(updateState),
+            T.map(updateRouter),
           );
           runRequest();
         }}
@@ -53,26 +48,32 @@ const Landing = ({
         onClick={() => {
           const runRequest = pipe(
             getTreeErrorFromREST(),
-            T.map(resp => ({
-              appState: { squirrelStuff: resp },
-              route: squirrelErrorDuplex.formatter.run(Route.empty, { id: 'tree' }),
+            T.map((newState): ManageRouter<AppState, AppRoute> => ({
+              newState,
+              navigation: N.push(AppRoute.SquirrelError({ type: 'tree' })),
             })),
-            T.map(updateState),
+            T.map(updateRouter),
           );
           runRequest();
         }}
       >
         Request dangerous tree
       </button>
-      <SquirrelRoute
-        appState={appState}
-        updateState={updateState}
-        customColor='blue'
-      />
-      <SquirrelErrorRoute
-        appState={appState}
-        updateState={updateState}
-      />
+      {E.fold(
+        (error: SquirrelErrorType | LoadingErrorType) => error.tag !== LoadingError.NOT_LOADED().tag && (
+          <SquirrelErrorRoute
+            error={error}
+            updateRouter={updateRouter}
+          />
+        ),
+        (squirrelStuff: SquirrelStuff) => (
+          <SquirrelRoute
+            id={squirrelStuff.id}
+            name={squirrelStuff.name}
+            updateRouter={updateRouter}
+          />
+        ),
+      )(managedState)}
     </div>
   );
 }

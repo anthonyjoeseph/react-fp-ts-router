@@ -1,17 +1,16 @@
 import React from 'react';
-import * as E from 'fp-ts/lib/Either';
-import { UpdateState, withNarrowerAppState } from 'react-fp-ts-router';
-import { AS, ES, LoadingError } from '../logic/AppState';
+import { UpdateRouter } from 'react-fp-ts-router';
+import { AppState } from '../logic/AppState';
 import DismissSquirrelButton from './DismissSquirrelButton';
-import { SquirrelError } from '../logic/SquirrelREST';
+import { SquirrelError, SquirrelErrorType } from '../logic/SquirrelREST';
 import { AppRoute } from '../logic/RouteTypes';
 
 const SquirrelErrorRoute = ({
-  appState,
-  updateState,
+  error,
+  updateRouter,
 }: {
-  appState: AS & ES;
-  updateState: UpdateState<AS, AppRoute>;
+  error: SquirrelErrorType;
+  updateRouter: UpdateRouter<AppState, AppRoute>;
 }) => (
   <div
     style={{
@@ -23,16 +22,12 @@ const SquirrelErrorRoute = ({
       {SquirrelError.match({
         HARD_NUT_TO_CRACK: () => 'Hard nut to crack.',
         TREE_FELL_DOWN: () => 'Tree fell down.',
-      })(appState.squirrelStuff.left)}
+      })(error)}
     </div>
     <DismissSquirrelButton
-      updateState={updateState}
+      updateRouter={updateRouter}
     />
   </div>
 );
 
-export default withNarrowerAppState(
-  SquirrelErrorRoute,
-  (a: AS): a is AS & ES => E.isLeft(a.squirrelStuff)
-    && a.squirrelStuff.left.tag !== LoadingError.NOT_LOADED().tag,
-);
+export default SquirrelErrorRoute;

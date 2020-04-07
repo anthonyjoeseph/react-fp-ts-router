@@ -1,19 +1,16 @@
 import React from 'react';
-import * as T from 'fp-ts/lib/Task';
+import * as O from 'fp-ts/lib/Option';
+import { pipe } from 'fp-ts/lib/pipeable';
 import * as R from 'fp-ts-routing';
 import * as U from 'unionize';
-import {
-  withCallbackRoutes, withNarrowerAppState, UpdateState,
-} from "react-fp-ts-router";
+import withManagedStateRouter, { UpdateRouter, RoutingResponse } from "react-fp-ts-router";
+import * as N from 'react-fp-ts-router/lib/Navigation';
 
-interface AppState {
-  text?: string;
-}
+type AppState = O.Option<string>
 
 const AppRoute = U.unionize({
   Landing: {},
   Show: {},
-  NotFound: {}
 });
 type AppRoute = U.UnionOf<typeof AppRoute>
 
@@ -23,75 +20,78 @@ const parser = R.zero<AppRoute>()
   .alt(landingDuplex.parser.map(() => AppRoute.Landing()))
   .alt(showDuplex.parser.map(() => AppRoute.Show()));
 
-const NoTextRoute = withNarrowerAppState(
-  ({
-    updateState
-  }: {
-    appState: {};
-    updateState: UpdateState<AppState, AppRoute>;
-  }) => (
-    <div>
-      landing
-      <button
-        onClick={() => updateState({
-          appState: { text: 'from button click' },
-          route: showDuplex.formatter.run(R.Route.empty, {}),
-        })}
-      >
-        go to route
-      </button>
-    </div>
-  ),
-  (appState: AppState): appState is {} => appState.text === undefined
-);
-
-const HasTextRoute = withNarrowerAppState(
-  ({
-    appState,
-    updateState
-  }: {
-    appState: { text: string };
-    updateState: UpdateState<AppState, AppRoute>;
-  }) => (
-    <div>
-      {appState.text}
-      <button
-        onClick={() => updateState({
-          appState: { text: undefined },
-          route: Landing.formatter.run(R.Route.empty, {}),
-        })}
-      >
-        go to landing
-      </button>
-    </div>
-  ),
-  (appState: AppState): appState is { text: string } => appState.text !== undefined
-);
-
-const Ex = withCallbackRoutes<AppState, AppRoute>(
-  ({ appState, updateState }) => {
-    return (
-      <div>
+const Ex = withManagedStateRouter<AppState, AppRoute>(
+  ({ managedState, updateRouter }) => {
+    const breaker =3;
+    return pipe(
+      managedState,
+      O.map(text => (
         <HasTextRoute
-          appState={appState}
-          updateState={updateState}
+          text={text}
+          updateRouter={updateRouter}
         />
+      )),
+      O.getOrElse(() => (
         <NoTextRoute
-          appState={appState}
-          updateState={updateState}
+          updateRouter={updateRouter}
         />
-      </div>
-    )
+      ))
+    );
   },
   parser,
-  AppRoute.NotFound(),
-  (_: AppRoute): AppState => ({}),
-  (appState) => AppRoute.match({
-    Show: () => T.of(appState.text === undefined
-      ? ({ appState: { text: 'from route' } })
-      : ({})),
-    default: () => T.of({}),
-  })
+  AppRoute.match({
+    Landing: () => R.format(landingDuplex.formatter, {}),
+    Show: () => R.format(showDuplex.formatter, {}),
+  }),
+  AppRoute.Landing(),
+  O.none,
+  (route, managedState) => AppRoute.match<RoutingResponse<AppState, AppRoute>>({
+    Show: () => {
+      const bkpt = 3;
+      return ({
+        sync: {
+          newState: O.isNone(managedState) ? O.some('from route') : O.none,
+        },
+      });
+    },
+    default: () => ({ }),
+  })(route)
+);
+
+const NoTextRoute = ({
+  updateRouter
+}: { updateRouter: UpdateRouter<AppState, AppRoute> }) => (
+  <div>
+    landing
+    <button
+      onClick={() => updateRouter({
+        navigation: N.push(AppRoute.Show()),
+        newState: O.some('from button click'),
+      })}
+    >
+      go to route
+    </button>
+  </div>
+);
+
+const HasTextRoute = ({
+  text,
+  updateRouter
+}: {
+  text: string;
+  updateRouter: UpdateRouter<AppState, AppRoute>;
+}) => (
+  <div>
+    {text}
+    <button
+      onClick={() => updateRouter({
+        newState: O.none,
+        navigation: N.push(AppRoute.Landing()),
+      })}
+    >
+      go to landing
+    </button>
+  </div>
 );
 
 export default Ex;

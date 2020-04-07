@@ -1,14 +1,15 @@
-import { withCallbackRoutes } from 'react-fp-ts-router';
-import { AS, defaultAppStateFromRouter } from '../logic/AppState';
+import withManagedStateRouter from 'react-fp-ts-router';
+import { defaultAppState, AppState } from '../logic/AppState';
 import updateStateFromRoute from '../logic/UpdateStateFromRoute';
 import Landing from './Landing';
-import { AppRoute, appRouter } from '../logic/RouteTypes';
+import { AppRoute, parser, formatter } from '../logic/RouteTypes';
 
-const App = withCallbackRoutes<AS, AppRoute>(
+const App = withManagedStateRouter<AppState, AppRoute>(
   Landing,
-  appRouter,
-  AppRoute.NotFound(),
-  defaultAppStateFromRouter,
+  parser,
+  formatter,
+  AppRoute.Home(),
+  defaultAppState,
   updateStateFromRoute,
 );
 

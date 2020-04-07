@@ -7,29 +7,27 @@ import { parse, Route, Parser } from 'fp-ts-routing';
 import * as N from './Navigation';
 import * as A from './Action';
 
-export type UpdateRouter<S, R> = (s: ManageRouter<S, R>) => void;
-
-export interface ManageRouter<S, R> {
-  newState?: S;
+export interface RouterUpdate<S, R> {
+  routingState?: S;
   navigation?: N.Navigation<R>;
 }
 
 export interface RoutingResponse<S, R> {
-  sync?: ManageRouter<S, R>;
-  async?:  T.Task<ManageRouter<S, R>>;
+  sync?: RouterUpdate<S, R>;
+  async?: T.Task<RouterUpdate<S, R>>;
 }
 
 export type OnRoute<S, R> = (
   newRoute: R,
-  managedState: S,
+  routingState: S,
   oldRoute: R,
   Action: A.Action,
 ) => RoutingResponse<S, R>;
 
 export interface ManagedStateRouterProps<S, R> {
-  managedState: S;
+  routingState: S;
   route: R;
-  updateRouter: UpdateRouter<S, R>;
+  updateRouter: (u: RouterUpdate<S, R>) => void;
 }
 
 const actionToNavResp = (a: History.Action): A.Action => {
@@ -39,24 +37,29 @@ const actionToNavResp = (a: History.Action): A.Action => {
 };
 
 /**
- * Creates a root component with global state managed by a functional router
- * (uses `createBrowserHistory` from {@link https://github.com/ReactTraining/history#readme history} for routing)
+ * Represents the current route as an {@link https://dev.to/gcanti/functional-design-algebraic-data-types-36kf ADT} and safely manages arbitrary routing state.
+ * Uses {@link https://github.com/ReactTraining/history#readme history} under the hood.
+ * You can make your own ADTs with 
+ * {@link https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types union types}
+ * and {@link https://www.typescriptlang.org/docs/handbook/advanced-types.html#user-defined-type-guards type guards},
+ * or you can use the {@link https://gcanti.github.io/fp-ts-codegen/ fp-ts-codegen playground}
+ * to easily generate them and their associated functions.
  * 
- * @template S - Managed state
- * @template R - Arbitrary routing type
+ * @template S - Managed routing state
+ * @template R - Routing ADT type
  * @param Root - Your app's root component
- * @param parser - Converts url path strings into arbitrary routing data
- * @param formatter - Converts arbitrary routing data into a url path string
- * @param notFoundRoute - Generic routing data to use when parser can't find a route
+ * @param parser - Converts url path strings into routing ADT
+ * @param formatter - Converts routing ADT into a url path string
+ * @param notFoundRoute - ADT to use when parser can't find a route
  * @param defaultManagedState - Populates managed state before component is mounted
- * @param onRoute - updates the router using the new route and preexisting state
+ * @param onRoute - updates the router using the new route and preexisting routing state
  */
-export default function withManagedStateRouter<S, R>(
+export default function withRouter<S, R>(
   Root: React.ComponentType<ManagedStateRouterProps<S, R>>,
   parser: Parser<R>,
   formatter: ((r: R) => string),
   notFoundRoute: R,
-  defaultState: S,
+  defaultManagedState: S,
   onRoute?: OnRoute<S, R>,
 ): React.ComponentType<{}>{
   const history = History.createBrowserHistory();
@@ -69,37 +72,23 @@ export default function withManagedStateRouter<S, R>(
     ongoBack: () => history.goBack(),
     ongoForward: () => history.goForward(),
   });
-  return class ManagedStateRouter extends Component<{}, { managedState: S; route: R }>{
-    public constructor(props: {}){
-      super(props);
-      const firstRoute = parse(
-        parser,
-        Route.parse(history.location.pathname),
-        notFoundRoute,
-      );
-      if (!onRoute) {
-        this.state = {
-          managedState: defaultState,
-          route: firstRoute,
-        };
-      } else {
-        const { sync, async } = onRoute(
-          firstRoute,
-          defaultState,
-          firstRoute,
-          actionToNavResp(history.action),
-        );
-        this.state = {
-          managedState: sync?.newState || defaultState,
-          route: firstRoute,
-        };
-        if (sync?.navigation) {
-          navigate(sync.navigation);
-        }
-        this.updateRouterAsync(async);
+  const firstRoute = parse(
+    parser,
+    Route.parse(history.location.pathname),
+    notFoundRoute,
+  );
+  return class ManagedStateRouter extends Component<{}, { routingState: S; route: R }>{
+    public state = {
+      route: firstRoute,
+      routingState: defaultManagedState,
+    };
 
-        // will not be invoked on initial route
-        history.listen((location, action) => {
+    public componentDidMount(): void {
+      if (onRoute) {
+        const handleHistory = (
+          location: History.Location<History.LocationState>,
+          action: History.Action,
+        ): void => {
           const newRoute = parse(
             parser,
             Route.parse(location.pathname),
@@ -107,7 +96,7 @@ export default function withManagedStateRouter<S, R>(
           );
           const { sync, async } = onRoute(
             newRoute,
-            this.state.managedState,
+            this.state.routingState,
             this.state.route,
             actionToNavResp(action),
           );
@@ -119,24 +108,28 @@ export default function withManagedStateRouter<S, R>(
             });
           }
           this.updateRouterAsync(async);
-        });
+        }
+        // will not be invoked on the initial route
+        history.listen(handleHistory);
+        // invoke onRoute for the initial route
+        handleHistory(history.location, history.action);
       }
     }
 
-    private updateRouter = ({ navigation, newState }: ManageRouter<S, R>): void => {
-      if (navigation && newState) {
-        this.setState({ managedState: newState }, () => {
+    private updateRouter = ({ navigation, routingState }: RouterUpdate<S, R>): void => {
+      if (navigation && routingState) {
+        this.setState({ routingState }, () => {
           navigate(navigation);
         });
       } else if (navigation) {
         navigate(navigation);
-      } else if (newState) {
-        this.setState({ managedState: newState });
+      } else if (routingState) {
+        this.setState({ routingState });
       }
     }
 
     private updateRouterAsync = (
-      async: T.Task<ManageRouter<S, R>> | undefined,
+      async: T.Task<RouterUpdate<S, R>> | undefined,
     ): void => {
       const runUpdate = pipe(
         O.fromNullable(async),
@@ -153,7 +146,7 @@ export default function withManagedStateRouter<S, R>(
     render(): JSX.Element {
       return (
         <Root
-          managedState={this.state.managedState}
+          routingState={this.state.routingState}
           route={this.state.route}
           updateRouter={this.updateRouter}
         />
