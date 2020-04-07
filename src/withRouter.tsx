@@ -56,14 +56,14 @@ const actionToNavResp = (a: History.Action): A.Action => {
  * @param defaultRoutingState - Populates managed state before component is mounted
  * @param onRoute - Updates the router using the new route and preexisting routing state
  */
-export default function withRouter<S, R>(
-  Router: React.ComponentType<ManagedStateRouterProps<S, R>>,
+export default function withRouter<S, R, T extends {} = {}>(
+  Router: React.ComponentType<T & ManagedStateRouterProps<S, R>>,
   parser: Parser<R>,
   formatter: ((r: R) => string),
   notFoundRoute: R,
   defaultManagedState: S,
   onRoute?: OnRoute<S, R>,
-): React.ComponentType<{}>{
+): React.ComponentType<T>{
   const history = History.createBrowserHistory();
   const navigate = N.fold<R, void>({
     onpush: (route) => history.push(formatter(route).toString()),
@@ -79,7 +79,7 @@ export default function withRouter<S, R>(
     Route.parse(history.location.pathname),
     notFoundRoute,
   );
-  return class ManagedStateRouter extends Component<{}, { routingState: S; route: R }>{
+  return class ManagedStateRouter extends Component<T, { routingState: S; route: R }>{
     public state = {
       route: firstRoute,
       routingState: defaultManagedState,
@@ -151,6 +151,7 @@ export default function withRouter<S, R>(
           routingState={this.state.routingState}
           route={this.state.route}
           updateRouter={this.updateRouter}
+          {...this.props}
         />
       );
     }

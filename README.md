@@ -1,5 +1,5 @@
 # react-fp-ts-router
-Represents the current route in state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary routing state. Manages the intersection of routing logic and render logic.
+Represents the current route in state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary [routing state](#what-should-my-routing-state-be?). Manages the intersection of routing logic and render logic.
 
 Vaguely inspired by [real world halogen](https://github.com/thomashoneyman/purescript-halogen-realworld)
 
@@ -16,6 +16,8 @@ Thanks to Giulio Canti for [fp-ts](https://github.com/gcanti/fp-ts) and [fp-ts-r
 ## Types
 ```tsx
 import { Parser } from 'fp-ts-routing'
+import * as N from 'react-fp-ts-routing/lib/Navigation'
+import * as A from 'react-fp-ts-routing/lib/Action'
 import * as History from 'history'
 
 export type UpdateRouter<S, R> = (params: UpdateRouterParams<S, R>) => void;
@@ -33,36 +35,50 @@ export interface OnRouteResponse<S, R> {
   sync?: UpdateRouterParams<S, R>;
   async?: T.Task<UpdateRouterParams<S, R>>;
 }
-export interface ManagedStateRouterProps<S, R> {
-  routingState: S;
-  route: R;
-  updateRouter: (u: UpdateRouterParams<S, R>) => void;
-}
-function withRouter<S, R>(
-  Router: React.ComponentType<ManagedStateRouterProps<S, R>>,
+function withRouter<S, R, T extends {} = {}>(
+  Router: React.ComponentType<T & ManagedStateRouterProps<S, R>>,
   parser: Parser<R>,
   formatter: ((r: R) => string),
   notFoundRoute: R,
   defaultManagedState: S,
   onRoute?: OnRoute<S, R>,
-): React.ComponentType<{}>
+): React.ComponentType<T>
 ```
 
 ## Params
 
 | Type Variable | Description |
 | ------------- | ----------- |
-| S             | Managed routing state |
+| S             | Managed [routing state](#what-should-my-routing-state-be?) |
 | R             | Routing ADT type |
+| T             | Other arbitrary props passed into `Router`, defaults to the empty object |
 
 | Param  | Description  |
 | ------ | ------------ |
 | Router  | Your app's router component |
 | parser | Converts url path strings into routing ADT |
-| formatter | Converts routing ADT into a url path string
+| formatter | Converts routing ADT into a url path string |
 | notFoundRoute | ADT to use when `parser` can't find a route |
-| defaultRoutingState | Populates managed state before component is mounted |
-| onRoute | Updates the router using the new route and preexisting routing state |
+| defaultRoutingState | Populates [routing state](#what-should-my-routing-state-be?) before component is mounted |
+| onRoute | Updates the router using the new route and preexisting [routing state](#what-should-my-routing-state-be?) |
+
+## Output props
+
+The `Router` component that `withRouter` wraps is given these props:
+
+```ts
+export interface ManagedStateRouterProps<S, R> {
+  routingState: S;
+  route: R;
+  updateRouter: (u: UpdateRouterParams<S, R>) => void;
+}
+```
+
+| Prop  | Description  |
+| ------ | ------------ |
+| routingState  | Your router's [routing state](#what-should-my-routing-state-be?) |
+| route | Your app's current route, represented as your routing ADT |
+| updateRouter | Updates router with a Navigation wrapping a routing ADT and/or new [routing state](#what-should-my-routing-state-be?) |
 
 ## Globals You Must Create
 
@@ -89,7 +105,7 @@ const formatter = RouteADT.match({
 });
 ```
 
-And your routing state. It can be anything (see below), but we'll use an option of text for this example:
+And your [routing state](#what-should-my-routing-state-be?). It can be anything (see below), but we'll use an optional string for this simple example:
 
 ```ts
 type RoutingState = O.Option<string>
@@ -115,8 +131,8 @@ const App = withRouter<RoutingState, RouteADT>(
   ),
   parser,
   formatter,
-  RouteADT.Landing(),
-  O.none,
+  RouteADT.Landing(), // default route used when the parser can't parse a url
+  O.none, // initial routing state
   (route, managedState) => RouteADT.match<OnRouteResponse<RoutingState, RouteADT>>({
     Show: () => ({
       sync: {
@@ -164,6 +180,33 @@ const HasTextRoute = ({
 );
 ```
 
+## Internal ADTs
+
+### Navigation
+
+`Navigation` is an ADT representing the different possible [`history navigations`](https://github.com/ReactTraining/history/blob/master/docs/Navigation.md).
+
+| `Navigation<R>` Type | Description |
+| ------------- | ----------- |
+| `N.push(route: R)` | Reroutes to routing ADT `R` |
+| `N.replace(route: R)` | Reroutes to routing ADT `R` [without pushing new entry](https://stackoverflow.com/questions/39340108/what-is-the-trade-off-between-history-push-and-replace) onto the [history stack](https://developer.mozilla.org/en-US/docs/Web/API/History_API), so the browser's `back` button won't be able to go back to original location |
+| `N.pushExt(path: string)` | `N.push` that can reroute to somewhere outside of your app |
+| `N.replaceExt(path: string)` | `N.replace` that can reroute to somewhere outside of your app |
+| `N.go(delta: number)` | Moves `delta` number of times through the session [history stack](https://developer.mozilla.org/en-US/docs/Web/API/History_API). Can be positive or negative. |
+| `N.goBack` | Moves back one page in the [history stack](https://developer.mozilla.org/en-US/docs/Web/API/History_API) |
+| `N.goForward` | Moves forward one pack in the [history stack](https://developer.mozilla.org/en-US/docs/Web/API/History_API) |
+
+### Action
+
+`Action` is an ADT representing the different possible ways the browser arrived at its current location.
+
+| `Action` Type | Description |
+|---------------|-------------|
+| A.push | The url was pushed onto the stack. (The user clicked a link, or your app used `N.push`) |
+| A.pop | The url was popped from the stack. (The user hit the browser's `back` button, or your app used `N.go` or `N.goBack`) |
+| A.replace | The url replaced the top entry of the stack. (Your app used `N.replace`) |
+
+
 ## What should my routing state be?
 
 If you find yourself doing a stateful redirect like this:
@@ -188,7 +231,7 @@ render() {
 You should put `data` into `routingState` and do this instead:
 
 ```tsx
-// `onRoute` is called before the `route` prop is changed
+// `onRoute` is called before the `route` prop is updated
 const onRoute = (route, routingState) => {
   if (route === 'goodRoute' && routingState === 'bad') {
     return {
@@ -209,6 +252,8 @@ If you find yourself pre-loading data before a reroute with a [setState callback
   })()
 }}>load stuff</button>
 ```
+
+Stop using `history`!
 
 You should put `data` into `routingState` and do this instead:
 

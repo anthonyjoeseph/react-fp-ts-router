@@ -41,8 +41,8 @@ const Ex = withRouter<RoutingState, RouteADT>(
   ),
   parser,
   formatter,
-  RouteADT.Landing(),
-  O.none,
+  RouteADT.Landing(), // default route used when the parser can't parse a url
+  O.none, // initial routing state
   (route, managedState) => RouteADT.match<OnRouteResponse<RoutingState, RouteADT>>({
     Show: () => ({
       sync: {
