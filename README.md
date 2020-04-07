@@ -1,5 +1,5 @@
 # react-fp-ts-router
-Root component router that parses routes with [fp-ts-routing](https://github.com/gcanti/fp-ts-routing)
+Represents the current route in state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary routing state.
 
 Updates global state as a callback, and [narrows](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates) global state type further down the component tree.
 
@@ -48,7 +48,7 @@ const formatter = RouteADT.match({
 
 ## Router
 
-Represents the current route as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary routing state.
+Represents the current route in state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary routing state.
 
 Uses [history](https://github.com/ReactTraining/history#readme) under the hood.
 
@@ -66,7 +66,7 @@ If you find yourself pre-loading data before a reroute like this:
 
 You should put `data` into `routingState` and do this instead:
 
-```ts
+```tsx
 // `updateRouter` will update your routing state before the reroute is triggered
 <button onClick={() => {
   T.task.map(preLoadData, data => this.props.updateRouter({

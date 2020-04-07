@@ -39,7 +39,7 @@ const actionToNavResp = (a: History.Action): A.Action => {
 };
 
 /**
- * Represents the current route as an {@link https://dev.to/gcanti/functional-design-algebraic-data-types-36kf ADT} and safely manages arbitrary routing state.
+ * Represents the current route in state as an {@link https://dev.to/gcanti/functional-design-algebraic-data-types-36kf ADT} and safely manages arbitrary routing state.
  * Uses {@link https://github.com/ReactTraining/history#readme history} under the hood.
  * You can make your own ADTs with 
  * {@link https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types union types}
