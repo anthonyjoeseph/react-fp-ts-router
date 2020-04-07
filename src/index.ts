@@ -1,17 +1,15 @@
 import withManagedStateRouter, {
-  UpdateRouter,
-  ManageRouter,
+  RouterUpdate,
   RoutingResponse,
-  ManagedStateRouterProps,
   OnRoute,
+  ManagedStateRouterProps,
 } from "./withManagedStateRouter";
 
 export default withManagedStateRouter;
 
 export {
-  UpdateRouter,
-  ManageRouter,
+  RouterUpdate,
   RoutingResponse,
-  ManagedStateRouterProps,
   OnRoute,
+  ManagedStateRouterProps,
 };
