@@ -13,13 +13,58 @@ Thanks to Giulio Canti for [fp-ts](https://github.com/gcanti/fp-ts) and [fp-ts-r
 ## Full example
 [Code from this readme](https://github.com/anthonyjoeseph/react-fp-ts-router/blob/master/example/src/ReadmeExample.tsx)
 
-## Globals You Must Create
+## Types
+```tsx
+import { Parser } from 'fp-ts-routing'
+import * as History from 'history'
 
-Your routing state:
-
-```ts
-type RoutingState = O.Option<string>
+export type UpdateRouter<S, R> = (params: UpdateRouterParams<S, R>) => void;
+export interface UpdateRouterParams<S, R> {
+  routingState?: S;
+  navigation?: N.Navigation<R>;
+}
+export type OnRoute<S, R> = (
+  newRoute: R,
+  routingState: S,
+  oldRoute: R,
+  Action: A.Action,
+) => OnRouteResponse<S, R>;
+export interface OnRouteResponse<S, R> {
+  sync?: UpdateRouterParams<S, R>;
+  async?: T.Task<UpdateRouterParams<S, R>>;
+}
+export interface ManagedStateRouterProps<S, R> {
+  routingState: S;
+  route: R;
+  updateRouter: (u: UpdateRouterParams<S, R>) => void;
+}
+function withRouter<S, R>(
+  Router: React.ComponentType<ManagedStateRouterProps<S, R>>,
+  parser: Parser<R>,
+  formatter: ((r: R) => string),
+  notFoundRoute: R,
+  defaultManagedState: S,
+  onRoute?: OnRoute<S, R>,
+): React.ComponentType<{}>
 ```
+
+## Params
+
+| Type Variable | Description |
+| ------------- | ----------- |
+| S             | Managed routing state |
+| R             | Routing ADT type |
+
+| Param  | Description  |
+| ------ | ------------ |
+| Router  | Your app's router component |
+| parser | Converts url path strings into routing ADT |
+| formatter | Converts routing ADT into a url path string
+| notFoundRoute | ADT to use when `parser` can't find a route |
+| defaultRoutingState | Populates managed state before component is mounted |
+| onRoute | Updates the router using the new route and preexisting routing state |
+
+## Globals You Must Create
 
 Your app's parser and formatter. This example uses [`unionize`](https://github.com/pelotom/unionize) for its [ADT](https://jrsinclair.com/articles/2019/algebraic-data-types-what-i-wish-someone-had-explained-about-functional-programming/), but you could use simple [union types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types) and [type guards](https://www.typescriptlang.org/docs/handbook/advanced-types.html#user-defined-type-guards), or you could use the [fp-ts-codegen playground](https://gcanti.github.io/fp-ts-codegen/) to easily generate an ADT and its associated functions.
 
@@ -44,13 +89,82 @@ const formatter = RouteADT.match({
 });
 ```
 
-## Router
+And your routing state. It can be anything (see below), but we'll use an option of text for this example:
 
-Represents the current route in state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary routing state.
+```ts
+type RoutingState = O.Option<string>
+```
 
-Uses [history](https://github.com/ReactTraining/history#readme) under the hood.
+## Usage
 
-### What should my routing state be?
+```tsx
+const App = withRouter<RoutingState, RouteADT>(
+  ({ routingState, updateRouter }) => pipe(
+    routingState,
+    O.map(text => (
+      <HasTextRoute
+        text={text}
+        updateRouter={updateRouter}
+      />
+    )),
+    O.getOrElse(() => (
+      <NoTextRoute
+        updateRouter={updateRouter}
+      />
+    ))
+  ),
+  parser,
+  formatter,
+  RouteADT.Landing(),
+  O.none,
+  (route, managedState) => RouteADT.match<OnRouteResponse<RoutingState, RouteADT>>({
+    Show: () => ({
+      sync: {
+        routingState: O.isNone(managedState) ? O.some('from route') : managedState,
+      },
+    }),
+    default: () => ({ }),
+  })(route)
+);
+
+const NoTextRoute = ({
+  updateRouter
+}: { updateRouter: UpdateRouter<RoutingState, RouteADT> }) => (
+  <div>
+    landing
+    <button
+      onClick={() => updateRouter({
+        navigation: N.push(RouteADT.Show()),
+        routingState: O.some('from button click'),
+      })}
+    >
+      go to route
+    </button>
+  </div>
+);
+
+const HasTextRoute = ({
+  text,
+  updateRouter
+}: {
+  text: string;
+  updateRouter: UpdateRouter<RoutingState, RouteADT>;
+}) => (
+  <div>
+    {text}
+    <button
+      onClick={() => updateRouter({
+        routingState: O.none,
+        navigation: N.push(RouteADT.Landing()),
+      })}
+    >
+      go to landing
+    </button>
+  </div>
+);
+```
+
+## What should my routing state be?
 
 If you find yourself doing a stateful redirect like this:
 
@@ -149,123 +263,3 @@ Your routing state should be the state in your app that determines stateful redi
 You could also use routing state to reroute users to a 'loading' route until a fetch call returns, or to reroute unauthenticated users to a login route and back again once they're complete.
 
 Routing state is meant to bridge your routing logic and your render logic, in order to de-couple routing logic from the component lifecycle.
-
-### Types
-```tsx
-import { Parser } from 'fp-ts-routing'
-import * as History from 'history'
-
-export type UpdateRouter<S, R> = (params: UpdateRouterParams<S, R>) => void;
-export interface UpdateRouterParams<S, R> {
-  routingState?: S;
-  navigation?: N.Navigation<R>;
-}
-export type OnRoute<S, R> = (
-  newRoute: R,
-  routingState: S,
-  oldRoute: R,
-  Action: A.Action,
-) => OnRouteResponse<S, R>;
-export interface OnRouteResponse<S, R> {
-  sync?: UpdateRouterParams<S, R>;
-  async?: T.Task<UpdateRouterParams<S, R>>;
-}
-export interface ManagedStateRouterProps<S, R> {
-  routingState: S;
-  route: R;
-  updateRouter: (u: UpdateRouterParams<S, R>) => void;
-}
-function withRouter<S, R>(
-  Router: React.ComponentType<ManagedStateRouterProps<S, R>>,
-  parser: Parser<R>,
-  formatter: ((r: R) => string),
-  notFoundRoute: R,
-  defaultManagedState: S,
-  onRoute?: OnRoute<S, R>,
-): React.ComponentType<{}>
-```
-
-### Params
-
-| Type Variable | Description |
-| ------------- | ----------- |
-| S             | Managed routing state |
-| R             | Routing ADT type |
-
-| Param  | Description  |
-| ------ | ------------ |
-| Router  | Your app's router component |
-| parser | Converts url path strings into routing ADT |
-| formatter | Converts routing ADT into a url path string
-| notFoundRoute | ADT to use when `parser` can't find a route |
-| defaultRoutingState | Populates managed state before component is mounted |
-| onRoute | Updates the router using the new route and preexisting routing state |
-
-### Usage
-
-```tsx
-const App = withRouter<RoutingState, RouteADT>(
-  ({ routingState, updateRouter }) => pipe(
-    routingState,
-    O.map(text => (
-      <HasTextRoute
-        text={text}
-        updateRouter={updateRouter}
-      />
-    )),
-    O.getOrElse(() => (
-      <NoTextRoute
-        updateRouter={updateRouter}
-      />
-    ))
-  ),
-  parser,
-  formatter,
-  RouteADT.Landing(),
-  O.none,
-  (route, managedState) => RouteADT.match<OnRouteResponse<RoutingState, RouteADT>>({
-    Show: () => ({
-      sync: {
-        routingState: O.isNone(managedState) ? O.some('from route') : managedState,
-      },
-    }),
-    default: () => ({ }),
-  })(route)
-);
-
-const NoTextRoute = ({
-  updateRouter
-}: { updateRouter: UpdateRouter<RoutingState, RouteADT> }) => (
-  <div>
-    landing
-    <button
-      onClick={() => updateRouter({
-        navigation: N.push(RouteADT.Show()),
-        routingState: O.some('from button click'),
-      })}
-    >
-      go to route
-    </button>
-  </div>
-);
-
-const HasTextRoute = ({
-  text,
-  updateRouter
-}: {
-  text: string;
-  updateRouter: UpdateRouter<RoutingState, RouteADT>;
-}) => (
-  <div>
-    {text}
-    <button
-      onClick={() => updateRouter({
-        routingState: O.none,
-        navigation: N.push(RouteADT.Landing()),
-      })}
-    >
-      go to landing
-    </button>
-  </div>
-);
-```
