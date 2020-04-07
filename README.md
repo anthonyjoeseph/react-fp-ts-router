@@ -17,67 +17,169 @@ Thanks to Giulio Canti for [fp-ts](https://github.com/gcanti/fp-ts) and [fp-ts-r
 
 ## Globals You Must Create
 
-Your app's state:
+Your routing state:
 
 ```ts
-interface AppState {
-  text?: string;
-}
+type RoutingState = O.Option<string>
 ```
 
-Your app's parsers (using [`unionize`](https://github.com/pelotom/unionize) for a route [sum type](https://jrsinclair.com/articles/2019/algebraic-data-types-what-i-wish-someone-had-explained-about-functional-programming/) is recommended):
+Your app's parser and formatter. This example uses [`unionize`](https://github.com/pelotom/unionize) for its [ADT](https://jrsinclair.com/articles/2019/algebraic-data-types-what-i-wish-someone-had-explained-about-functional-programming/), but you could use simple [union types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types) and [type guards](https://www.typescriptlang.org/docs/handbook/advanced-types.html#user-defined-type-guards), or you could use the [fp-ts-codegen playground](https://gcanti.github.io/fp-ts-codegen/) to easily generate an ADT and its associated functions.
 
 ```ts
 import * as R from 'fp-ts-routing';
 import * as U from 'unionize';
 
-const AppRoute = U.unionize({
+const RouteADT = U.unionize({
   Landing: {},
   Show: {},
-  NotFound: {}
 });
-type AppRoute = U.UnionOf<typeof AppRoute>
+type RouteADT = U.UnionOf<typeof RouteADT>
 
 const landingDuplex = R.end;
 const showDuplex = R.lit('show').then(R.end);
-const parser = R.zero<AppRoute>()
-  .alt(landingDuplex.parser.map(() => AppRoute.Landing()))
-  .alt(showDuplex.parser.map(() => AppRoute.Show()));
+const parser = R.zero<RouteADT>()
+  .alt(landingDuplex.parser.map(() => RouteADT.Landing()))
+  .alt(showDuplex.parser.map(() => RouteADT.Show()));
+const formatter = RouteADT.match({
+  Landing: () => R.format(landingDuplex.formatter, {}),
+  Show: () => R.format(showDuplex.formatter, {}),
+});
 ```
 
 ## Router
 
-Creates a root component with global state managed by formatters and parsers from [fp-ts-routing](https://github.com/gcanti/fp-ts-routing) (uses `createBrowserHistory` from [history](https://github.com/ReactTraining/history#readme) to listen for actual callbacks).
+Represents the current route as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary routing state.
+
+Uses [history](https://github.com/ReactTraining/history#readme) under the hood.
+
+### What should my routing state be?
+
+If you find yourself pre-loading data before a reroute like this:
+
+```tsx
+<button onClick={() => {
+  T.task.map(preLoadData, data => {
+    this.setState({ data }, () => history.push('route'));
+  })()
+}}>load stuff</button>
+```
+
+You should put `data` into `routingState` and do this instead:
+
+```ts
+// `updateRouter` will update your routing state before the reroute is triggered
+<button onClick={() => {
+  T.task.map(preLoadData, data => this.props.updateRouter({
+    routingState: data,
+    navigation: Navigation.push(RouteADT.route()),
+  }))()
+}}>load stuff</button>
+```
+
+If you find yourself initializing data after a reroute like this:
+
+```tsx
+// Comp.tsx
+componentDidMount() {
+  T.task.map(initializeData, data => this.setState({ data }))();
+}
+render(){
+  if (this.state.data === undefined) return null;
+  return (...);
+}
+// in parent component
+{ route === RouteADT.newRoute() && (
+  <Comp />
+)}
+```
+
+You should put `data` into `routingState` and do this instead:
+
+```tsx
+// in your 'withRoute' invocation:
+const onRoute = (route) => {
+  if (route === RouteADT.newRoute()) {
+    return {
+      async: T.task.map(initializeData, data => ({ routingState: data }))
+    }
+  } 
+}
+// in parent component
+{route === RouteADT.route() && routingData !== undefined (
+  <Comp
+    data={routingData}
+  />
+)}
+```
+
+If you find yourself doing a stateful redirect like this:
+
+```tsx
+// Comp.tsx
+componentDidMount() {
+  if (this.state.data === 'bad') {
+    history.push('badRoute');
+  }
+}
+render() {
+  if (this.state.data === 'bad') return <div/>;
+  return (...);
+}
+// in parent component
+{route === 'goodRoute' && (
+  <Comp />
+)}
+```
+
+You should put `data` into `routingState` and do this instead:
+
+```tsx
+// `onRoute` is called before the `route` prop is changed
+const onRoute = (route, routingState) => {
+  if (route === 'goodRoute' && routingState === 'bad') {
+    return {
+      sync: {
+        navigate: Navigate.push(RouteADT.badRoute()),
+      }
+    }
+  } 
+}
+```
+
+In summary: your routing state should be the state in your app that determines stateful redirects (using `onRoute`), or that needs to be updated before a reroute (using `updateRouter`) or after a reroute (using `onRoute`). Routing state is meant to bridge your routing logic and your render logic, and to de-couple routing logic from the component lifecycle.
 
 ### Types
-```ts
+```tsx
 import { Parser } from 'fp-ts-routing'
 import * as History from 'history'
 
-interface AppStateWithRoute<S, R> {
-  appState?: Pick<S, keyof S>;
-  route?: Route;
+export type UpdateRouter<S, R> = (params: UpdateRouterParams<S, R>) => void;
+export interface UpdateRouterParams<S, R> {
+  routingState?: S;
+  navigation?: N.Navigation<R>;
 }
-type UpdateState<S, R> = (a: AppStateWithRoute<S, R>) => void
-type DefaultStateFromRoute<S, R> = (
-  route: R,
-  location?: History.Location<History.LocationState>,
-  action?: History.Action,
-) => S
-type StateTaskFromRoute<S, R> = (
-  appState: S,
-  location?: History.Location<History.LocationState>,
-  action?: History.Action,
-) => (
-  route: R,
-) => T.Task<AppStateWithRoute<S, R>>
-
-function withCallbackRoutes<S, R>(
-    Root: React.ComponentType<AppStateProps<S, R>>,
-    parser: Parser<R>,
-    notFoundRoute: R,
-    defaultStateFromRoute: DefaultStateFromRoute<S, R>,
-    newStateFromRoute: StateTaskFromRoute<S, R>
+export type OnRoute<S, R> = (
+  newRoute: R,
+  routingState: S,
+  oldRoute: R,
+  Action: A.Action,
+) => OnRouteResponse<S, R>;
+export interface OnRouteResponse<S, R> {
+  sync?: UpdateRouterParams<S, R>;
+  async?: T.Task<UpdateRouterParams<S, R>>;
+}
+export interface ManagedStateRouterProps<S, R> {
+  routingState: S;
+  route: R;
+  updateRouter: (u: UpdateRouterParams<S, R>) => void;
+}
+function withRouter<S, R>(
+  Router: React.ComponentType<ManagedStateRouterProps<S, R>>,
+  parser: Parser<R>,
+  formatter: ((r: R) => string),
+  notFoundRoute: R,
+  defaultManagedState: S,
+  onRoute?: OnRoute<S, R>,
 ): React.ComponentType<{}>
 ```
 
@@ -85,122 +187,83 @@ function withCallbackRoutes<S, R>(
 
 | Type Variable | Description |
 | ------------- | ----------- |
-| S             | Global app state |
-| R             | User-defined route type |
+| S             | Managed routing state |
+| R             | Routing ADT type |
 
 | Param  | Description  |
 | ------ | ------------ |
-| Root  | Your app's root component |
-| parser | Converts [Route](https://gcanti.github.io/fp-ts-routing/modules/index.ts.html#route-class) into user-defined route |
-| notFoundRoute | User-defined route to use when parser can't find a route |
-| defaultStateFromRoute | Populates app's global state before component is mounted |
-| newStateFromRoute | Callback on component mount and route change |
+| Router  | Your app's router component |
+| parser | Converts url path strings into routing ADT |
+| formatter | Converts routing ADT into a url path string
+| notFoundRoute | ADT to use when `parser` can't find a route |
+| defaultRoutingState | Populates managed state before component is mounted |
+| onRoute | Updates the router using the new route and preexisting routing state |
 
 ### Usage
 
 ```tsx
-const App = withCallbackRoutes<AppState, AppRoute>(
-  ({ appState, updateState }) => (
-    <div>
+const App = withRouter<AppState, AppRoute>(
+  ({ routingState, updateRouter }) => pipe(
+    routingState,
+    O.map(text => (
       <HasTextRoute
-        appState={appState}
-        updateState={updateState}
+        text={text}
+        updateRouter={updateRouter}
       />
+    )),
+    O.getOrElse(() => (
       <NoTextRoute
-        appState={appState}
-        updateState={updateState}
+        updateRouter={updateRouter}
       />
-    </div>
+    ))
   ),
   parser,
-  AppRoute.NotFound(),
-  (_: AppRoute): AppState => ({}),
-  (appState) => AppRoute.match({
-    Show: () => T.of(appState.text === undefined
-      ? ({ appState: { text: 'from route' } })
-      : ({})),
-    default: () => T.of({}),
-  })
-);
-```
-
-## Routes
-Renders components who accept a narrower version of the global state.
-
-Think of `withNarrowerAppState` as analagous to [`<Route>` from React-Router](https://reacttraining.com/react-router/web/api/Route)
-
-### Types
-```ts
-interface JustStateProps<S> {
-  appState: S;
-}
-// this return type looks scarier than it is
-function withNarrowerAppState<
-  S, N extends S, T extends JustStateProps<N>
->(
-  WrappedComponent: React.ComponentType<T>,
-  renderCondition: (a: S) => a is N
-): React.ComponentType<Omit<T, keyof JustStateProps<N>> & JustStateProps<S>>
-```
-
-### Params
-
-| Type Variable | Description |
-| ------------- | ----------- |
-| S             | Global app state |
-| N             | Narrower app state |
-| T             | All of the wrapped component's props |
-
-| Param  | Description  |
-| ------ | ------------ |
-| WrappedComponent  | Component with narrow app state |
-| renderCondition | Type predicate to narrow component type |
-
-### Usage
-
-```tsx
-const NoTextRoute = withNarrowerAppState(
-  ({
-    updateState
-  }: {
-    appState: {};
-    updateState: UpdateState<AppState, AppRoute>;
-  }) => (
-    <div>
-      landing
-      <button
-        onClick={() => updateState({
-          appState: { text: 'from button click' },
-          route: showDuplex.formatter.run(R.Route.empty, {}),
-        })}
-      >
-        go to route
-      </button>
-    </div>
-  ),
-  (appState: AppState): appState is {} => appState.text === undefined
+  formatter,
+  AppRoute.Landing(),
+  O.none,
+  (route, managedState) => AppRoute.match<OnRouteResponse<AppState, AppRoute>>({
+    Show: () => ({
+      sync: {
+        routingState: O.isNone(managedState) ? O.some('from route') : managedState,
+      },
+    }),
+    default: () => ({ }),
+  })(route)
 );
 
-const HasTextRoute = withNarrowerAppState(
-  ({
-    appState,
-    updateState
-  }: {
-    appState: { text: string };
-    updateState: UpdateState<AppState, AppRoute>;
-  }) => (
-    <div>
-      {appState.text}
-      <button
-        onClick={() => updateState({
-          appState: { text: undefined },
-          route: homeDuplex.formatter.run(R.Route.empty, {}),
-        })}
-      >
-        go to landing
-      </button>
-    </div>
-  ),
-  (appState: AppState): appState is { text: string } => appState.text !== undefined
+const NoTextRoute = ({
+  updateRouter
+}: { updateRouter: UpdateRouter<AppState, AppRoute> }) => (
+  <div>
+    landing
+    <button
+      onClick={() => updateRouter({
+        navigation: N.push(AppRoute.Show()),
+        routingState: O.some('from button click'),
+      })}
+    >
+      go to route
+    </button>
+  </div>
+);
+
+const HasTextRoute = ({
+  text,
+  updateRouter
+}: {
+  text: string;
+  updateRouter: UpdateRouter<AppState, AppRoute>;
+}) => (
+  <div>
+    {text}
+    <button
+      onClick={() => updateRouter({
+        routingState: O.none,
+        navigation: N.push(AppRoute.Landing()),
+      })}
+    >
+      go to landing
+    </button>
+  </div>
 );
 ```

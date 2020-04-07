@@ -2,7 +2,7 @@ import React from 'react';
 import * as T from 'fp-ts/lib/Task';
 import * as E from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
-import { ManagedStateRouterProps, ManageRouter } from 'react-fp-ts-router';
+import { ManagedStateRouterProps, UpdateRouterParams } from 'react-fp-ts-router';
 import * as N from 'react-fp-ts-router/lib/Navigation';
 import { AppState, SquirrelStuff, LoadingError, LoadingErrorType } from '../logic/AppState';
 import SquirrelRoute from './SquirrelRoute';
@@ -11,7 +11,7 @@ import { getNutErrorFromREST, getTreeErrorFromREST, SquirrelErrorType } from '..
 import { AppRoute } from '../logic/RouteTypes';
 
 const Landing = ({
-  managedState,
+  routingState,
   updateRouter,
 }: ManagedStateRouterProps<AppState, AppRoute> ) => {
   return (
@@ -19,7 +19,7 @@ const Landing = ({
       <button
         onClick={() => {
           updateRouter({
-            newState: E.right({
+            routingState: E.right({
               id: 100,
               name: 'Rocky',
             }),
@@ -33,8 +33,8 @@ const Landing = ({
         onClick={() => {
           const runRequest = pipe(
             getNutErrorFromREST(),
-            T.map((newState): ManageRouter<AppState, AppRoute> => ({
-              newState,
+            T.map((routingState): UpdateRouterParams<AppState, AppRoute> => ({
+              routingState,
               navigation: N.push(AppRoute.SquirrelError({ type: 'nut' })),
             })),
             T.map(updateRouter),
@@ -48,8 +48,8 @@ const Landing = ({
         onClick={() => {
           const runRequest = pipe(
             getTreeErrorFromREST(),
-            T.map((newState): ManageRouter<AppState, AppRoute> => ({
-              newState,
+            T.map((routingState): UpdateRouterParams<AppState, AppRoute> => ({
+              routingState,
               navigation: N.push(AppRoute.SquirrelError({ type: 'tree' })),
             })),
             T.map(updateRouter),
@@ -73,7 +73,7 @@ const Landing = ({
             updateRouter={updateRouter}
           />
         ),
-      )(managedState)}
+      )(routingState)}
     </div>
   );
 }

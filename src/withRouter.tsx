@@ -49,15 +49,15 @@ const actionToNavResp = (a: History.Action): A.Action => {
  * 
  * @template S - Managed routing state
  * @template R - Routing ADT type
- * @param Root - Your app's root component
+ * @param Router - Your app's router component
  * @param parser - Converts url path strings into routing ADT
  * @param formatter - Converts routing ADT into a url path string
  * @param notFoundRoute - ADT to use when parser can't find a route
- * @param defaultManagedState - Populates managed state before component is mounted
- * @param onRoute - updates the router using the new route and preexisting routing state
+ * @param defaultRoutingState - Populates managed state before component is mounted
+ * @param onRoute - Updates the router using the new route and preexisting routing state
  */
 export default function withRouter<S, R>(
-  Root: React.ComponentType<ManagedStateRouterProps<S, R>>,
+  Router: React.ComponentType<ManagedStateRouterProps<S, R>>,
   parser: Parser<R>,
   formatter: ((r: R) => string),
   notFoundRoute: R,
@@ -147,7 +147,7 @@ export default function withRouter<S, R>(
 
     render(): JSX.Element {
       return (
-        <Root
+        <Router
           routingState={this.state.routingState}
           route={this.state.route}
           updateRouter={this.updateRouter}

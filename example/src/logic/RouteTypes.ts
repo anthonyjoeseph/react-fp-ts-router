@@ -4,7 +4,8 @@ import { unionize, UnionOf, ofType } from "unionize";
 export const AppRoute = unionize({
   Home: {},
   Squirrel: {},
-  SquirrelError: ofType<{ type: 'nut' | 'tree' }>()
+  SquirrelError: ofType<{ type: 'nut' | 'tree' }>(),
+  NotFound: {},
 });
 
 export type AppRoute = UnionOf<typeof AppRoute>;
@@ -18,10 +19,11 @@ export const parser = R.zero<AppRoute>()
   .alt(squirrelDuplex.parser.map(() => AppRoute.Squirrel()))
   .alt(squirrelErrorDuplex.parser.map(({ id }) => id === 'nut' || id === 'tree'
     ? AppRoute.SquirrelError({ type: id })
-    : AppRoute.Home()
+    : AppRoute.NotFound()
   ));
 
 export const formatter = AppRoute.match<string>({
+  NotFound: () => R.format(homeDuplex.formatter, {}),
   Home: () => R.format(homeDuplex.formatter, {}),
   Squirrel: () => R.format(squirrelDuplex.formatter, {}),
   SquirrelError: ({ type }) => R.format(squirrelErrorDuplex.formatter, { id: type }),
