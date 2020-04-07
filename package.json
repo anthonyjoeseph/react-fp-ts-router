@@ -1,6 +1,6 @@
 {
   "name": "react-fp-ts-router",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "Updates global state with a routing callback, and narrows global state type further down the component tree.",
   "main": "lib/index.js",
   "repository": "https://github.com/anthonyjoeseph/react-fp-ts-router",
