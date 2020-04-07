@@ -36,7 +36,7 @@ export interface ManagedStateRouterProps<S, R> {
 | `route` | Your app's current route, represented as your routing ADT |
 | `updateRouter` | Updates router with a Navigation wrapping a routing ADT and/or new [routing state](#what-should-my-routing-state-be?) |
 
-## [HOC](https://reactjs.org/docs/higher-order-components.html) function type
+## `withRouter` [HOC](https://reactjs.org/docs/higher-order-components.html) function type
 ```tsx
 import { Parser } from 'fp-ts-routing'
 import * as N from 'react-fp-ts-routing/lib/Navigation'
@@ -206,9 +206,9 @@ const HasTextRoute = ({
 
 | `Action` Type | Description |
 |---------------|-------------|
-| A.push | The url was pushed onto the stack. (The user clicked a link, or your app used `N.push`) |
-| A.pop | The url was popped from the stack. (The user hit the browser's `back` button, or your app used `N.go` or `N.goBack`) |
-| A.replace | The url replaced the top entry of the stack. (Your app used `N.replace`) |
+| `A.push` | The url was pushed onto the stack. (The user clicked a link, or your app used `N.push`) |
+| `A.pop` | The url was popped from the stack. (The user hit the browser's `back` button, or your app used `N.go` or `N.goBack`) |
+| `A.replace` | The url replaced the top entry of the stack. (Your app used `N.replace`) |
 
 
 ## What should my routing state be?
