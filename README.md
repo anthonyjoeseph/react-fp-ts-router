@@ -200,7 +200,7 @@ function withRouter<S, R>(
 ### Usage
 
 ```tsx
-const App = withRouter<AppState, AppRoute>(
+const App = withRouter<RoutingState, RouteADT>(
   ({ routingState, updateRouter }) => pipe(
     routingState,
     O.map(text => (
@@ -217,9 +217,9 @@ const App = withRouter<AppState, AppRoute>(
   ),
   parser,
   formatter,
-  AppRoute.Landing(),
+  RouteADT.Landing(),
   O.none,
-  (route, managedState) => AppRoute.match<OnRouteResponse<AppState, AppRoute>>({
+  (route, managedState) => RouteADT.match<OnRouteResponse<RoutingState, RouteADT>>({
     Show: () => ({
       sync: {
         routingState: O.isNone(managedState) ? O.some('from route') : managedState,
@@ -231,12 +231,12 @@ const App = withRouter<AppState, AppRoute>(
 
 const NoTextRoute = ({
   updateRouter
-}: { updateRouter: UpdateRouter<AppState, AppRoute> }) => (
+}: { updateRouter: UpdateRouter<RoutingState, RouteADT> }) => (
   <div>
     landing
     <button
       onClick={() => updateRouter({
-        navigation: N.push(AppRoute.Show()),
+        navigation: N.push(RouteADT.Show()),
         routingState: O.some('from button click'),
       })}
     >
@@ -250,14 +250,14 @@ const HasTextRoute = ({
   updateRouter
 }: {
   text: string;
-  updateRouter: UpdateRouter<AppState, AppRoute>;
+  updateRouter: UpdateRouter<RoutingState, RouteADT>;
 }) => (
   <div>
     {text}
     <button
       onClick={() => updateRouter({
         routingState: O.none,
-        navigation: N.push(AppRoute.Landing()),
+        navigation: N.push(RouteADT.Landing()),
       })}
     >
       go to landing
