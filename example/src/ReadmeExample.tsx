@@ -26,7 +26,7 @@ const formatter = RouteADT.match({
 type RoutingState = O.Option<string>
 const defaultRoutingState: RoutingState = O.none;
 
-const Ex = withRouter<RoutingState, RouteADT>(
+const App = withRouter<RoutingState, RouteADT>(
   ({ routingState, updateRouter }) => pipe(
     routingState,
     O.map(text => (
@@ -91,4 +91,4 @@ const HasTextRoute = ({
   </div>
 );
 
-export default Ex;
+export default App;
