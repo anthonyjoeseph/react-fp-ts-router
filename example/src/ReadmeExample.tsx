@@ -22,7 +22,7 @@ const parser = R.zero<AppRoute>()
 
 const Ex = withManagedStateRouter<AppState, AppRoute>(
   ({ managedState, updateRouter }) => {
-    const breaker =3;
+    const breaker = 3;
     return pipe(
       managedState,
       O.map(text => (

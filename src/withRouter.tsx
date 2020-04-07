@@ -7,14 +7,11 @@ import { parse, Route, Parser } from 'fp-ts-routing';
 import * as N from './Navigation';
 import * as A from './Action';
 
-export interface RouterUpdate<S, R> {
+export type UpdateRouter<S, R> = (params: UpdateRouterParams<S, R>) => void;
+
+export interface UpdateRouterParams<S, R> {
   routingState?: S;
   navigation?: N.Navigation<R>;
-}
-
-export interface RoutingResponse<S, R> {
-  sync?: RouterUpdate<S, R>;
-  async?: T.Task<RouterUpdate<S, R>>;
 }
 
 export type OnRoute<S, R> = (
@@ -22,12 +19,17 @@ export type OnRoute<S, R> = (
   routingState: S,
   oldRoute: R,
   Action: A.Action,
-) => RoutingResponse<S, R>;
+) => OnRouteResponse<S, R>;
+
+export interface OnRouteResponse<S, R> {
+  sync?: UpdateRouterParams<S, R>;
+  async?: T.Task<UpdateRouterParams<S, R>>;
+}
 
 export interface ManagedStateRouterProps<S, R> {
   routingState: S;
   route: R;
-  updateRouter: (u: RouterUpdate<S, R>) => void;
+  updateRouter: (u: UpdateRouterParams<S, R>) => void;
 }
 
 const actionToNavResp = (a: History.Action): A.Action => {
@@ -116,7 +118,7 @@ export default function withRouter<S, R>(
       }
     }
 
-    private updateRouter = ({ navigation, routingState }: RouterUpdate<S, R>): void => {
+    private updateRouter = ({ navigation, routingState }: UpdateRouterParams<S, R>): void => {
       if (navigation && routingState) {
         this.setState({ routingState }, () => {
           navigate(navigation);
@@ -129,7 +131,7 @@ export default function withRouter<S, R>(
     }
 
     private updateRouterAsync = (
-      async: T.Task<RouterUpdate<S, R>> | undefined,
+      async: T.Task<UpdateRouterParams<S, R>> | undefined,
     ): void => {
       const runUpdate = pipe(
         O.fromNullable(async),
