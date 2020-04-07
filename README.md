@@ -1,7 +1,5 @@
 # react-fp-ts-router
-Represents the current route in state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary routing state.
-
-Updates global state as a callback, and [narrows](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates) global state type further down the component tree.
+Represents the current route in state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary routing state. Manages the intersection of routing logic and render logic.
 
 Vaguely inspired by [real world halogen](https://github.com/thomashoneyman/purescript-halogen-realworld)
 
