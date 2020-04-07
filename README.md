@@ -103,9 +103,9 @@ const onRoute = (route) => {
   } 
 }
 // in parent component
-{route === RouteADT.route() && routingData !== undefined (
+{route === RouteADT.route() && routingState !== undefined (
   <Comp
-    data={routingData}
+    data={routingState}
   />
 )}
 ```
