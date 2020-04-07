@@ -232,7 +232,7 @@ render() {
 )}
 ```
 
-You should put `data` into `routingState` and do this instead:
+You should move `data` into `routingState` and do this instead:
 
 ```tsx
 // `onRoute` is called before the `route` prop is updated
@@ -259,7 +259,7 @@ If you find yourself pre-loading data before a reroute with a [setState callback
 
 Stop using `history`!
 
-You should put `data` into `routingState` and do this instead:
+You should move `data` into `routingState` and do this instead:
 
 ```tsx
 // `updateRouter` will update your routing state before the reroute is triggered
@@ -288,7 +288,7 @@ render(){
 )}
 ```
 
-You should put `data` into `routingState` and do this instead:
+You should move `data` into `routingState` and do this instead:
 
 ```tsx
 // in your 'withRoute' invocation:
