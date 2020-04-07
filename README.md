@@ -1,5 +1,5 @@
 # react-fp-ts-router
-Represents the current route in state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary [routing state](#what-should-my-routing-state-be?). Manages the intersection of routing logic and render logic.
+Represents the current route in state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary [routing state](#what-should-my-routing-state-be?), which is the intersection of routing logic and render logic.
 
 Vaguely inspired by [real world halogen](https://github.com/thomashoneyman/purescript-halogen-realworld)
 
