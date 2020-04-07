@@ -1,7 +1,5 @@
 # react-fp-ts-router
-Represents the current route in state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary [routing state](#what-should-my-routing-state-be?), which is the intersection of routing logic and render logic.
-
-Vaguely inspired by [real world halogen](https://github.com/thomashoneyman/purescript-halogen-realworld)
+An [HOC](https://reactjs.org/docs/higher-order-components.html) that builds a router that represents the current route in react state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary [routing state](#what-should-my-routing-state-be?), which is the intersection of routing logic and render logic.
 
 Thanks to Giulio Canti for [fp-ts](https://github.com/gcanti/fp-ts) and [fp-ts-routing](https://github.com/gcanti/fp-ts-routing)
 
@@ -13,18 +11,38 @@ Thanks to Giulio Canti for [fp-ts](https://github.com/gcanti/fp-ts) and [fp-ts-r
 ## Full example
 [Code from this readme](https://github.com/anthonyjoeseph/react-fp-ts-router/blob/master/example/src/ReadmeExample.tsx)
 
-## Types
+
+## Output prop types
+
+The `Router` component that `withRouter` wraps is given these props:
+
+```ts
+import * as N from 'react-fp-ts-routing/lib/Navigation'
+export type UpdateRouter<S, R> = (params: UpdateRouterParams<S, R>) => void;
+export interface UpdateRouterParams<S, R> {
+  routingState?: S;
+  navigation?: N.Navigation<R>;
+}
+export interface ManagedStateRouterProps<S, R> {
+  routingState: S;
+  route: R;
+  updateRouter: (u: UpdateRouterParams<S, R>) => void;
+}
+```
+
+| Prop  | Description  |
+| ------ | ------------ |
+| `routingState`  | Your router's [routing state](#what-should-my-routing-state-be?) |
+| `route` | Your app's current route, represented as your routing ADT |
+| `updateRouter` | Updates router with a Navigation wrapping a routing ADT and/or new [routing state](#what-should-my-routing-state-be?) |
+
+## [HOC](https://reactjs.org/docs/higher-order-components.html) function type
 ```tsx
 import { Parser } from 'fp-ts-routing'
 import * as N from 'react-fp-ts-routing/lib/Navigation'
 import * as A from 'react-fp-ts-routing/lib/Action'
 import * as History from 'history'
 
-export type UpdateRouter<S, R> = (params: UpdateRouterParams<S, R>) => void;
-export interface UpdateRouterParams<S, R> {
-  routingState?: S;
-  navigation?: N.Navigation<R>;
-}
 export type OnRoute<S, R> = (
   newRoute: R,
   routingState: S,
@@ -49,40 +67,24 @@ function withRouter<S, R, T extends {} = {}>(
 
 | Type Variable | Description |
 | ------------- | ----------- |
-| S             | Managed [routing state](#what-should-my-routing-state-be?) |
-| R             | Routing ADT type |
-| T             | Other arbitrary props passed into `Router`, defaults to the empty object |
+| `S`             | Managed [routing state](#what-should-my-routing-state-be?) |
+| `R`             | Routing ADT type |
+| `T`             | Other arbitrary props passed into `Router`, defaults to the empty object |
 
 | Param  | Description  |
 | ------ | ------------ |
-| Router  | Your app's router component |
-| parser | Converts url path strings into routing ADT |
-| formatter | Converts routing ADT into a url path string |
-| notFoundRoute | ADT to use when `parser` can't find a route |
-| defaultRoutingState | Populates [routing state](#what-should-my-routing-state-be?) before component is mounted |
-| onRoute | Updates the router using the new route and preexisting [routing state](#what-should-my-routing-state-be?) |
-
-## Output props
-
-The `Router` component that `withRouter` wraps is given these props:
-
-```ts
-export interface ManagedStateRouterProps<S, R> {
-  routingState: S;
-  route: R;
-  updateRouter: (u: UpdateRouterParams<S, R>) => void;
-}
-```
-
-| Prop  | Description  |
-| ------ | ------------ |
-| routingState  | Your router's [routing state](#what-should-my-routing-state-be?) |
-| route | Your app's current route, represented as your routing ADT |
-| updateRouter | Updates router with a Navigation wrapping a routing ADT and/or new [routing state](#what-should-my-routing-state-be?) |
+| `Router`  | Your app's router component |
+| `parser` | Converts url path strings into routing ADT |
+| `formatter` | Converts routing ADT into a url path string |
+| `notFoundRoute` | ADT to use when `parser` can't find a route |
+| `defaultRoutingState` | Populates [routing state](#what-should-my-routing-state-be?) before component is mounted |
+| `onRoute` | Updates the router using the new route and preexisting [routing state](#what-should-my-routing-state-be?) |
 
 ## Globals You Must Create
 
-Your app's parser and formatter. This example uses [`unionize`](https://github.com/pelotom/unionize) for its [ADT](https://jrsinclair.com/articles/2019/algebraic-data-types-what-i-wish-someone-had-explained-about-functional-programming/), but you could use simple [union types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types) and [type guards](https://www.typescriptlang.org/docs/handbook/advanced-types.html#user-defined-type-guards), or you could use the [fp-ts-codegen playground](https://gcanti.github.io/fp-ts-codegen/) to easily generate an ADT and its associated functions.
+Your app's parser and formatter. Check out the [fp-ts-routing docs](https://github.com/gcanti/fp-ts-routing#usage) for more info. 
+
+This example uses [`unionize`](https://github.com/pelotom/unionize) for its [ADT](https://jrsinclair.com/articles/2019/algebraic-data-types-what-i-wish-someone-had-explained-about-functional-programming/), but you could use simple [union types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types) and [type guards](https://www.typescriptlang.org/docs/handbook/advanced-types.html#user-defined-type-guards), or you could use the [fp-ts-codegen playground](https://gcanti.github.io/fp-ts-codegen/) to easily generate an ADT and its associated functions.
 
 ```ts
 import * as R from 'fp-ts-routing';
@@ -93,6 +95,7 @@ const RouteADT = U.unionize({
   Show: {},
 });
 type RouteADT = U.UnionOf<typeof RouteADT>
+const defaultRoute: RouteADT = RouteADT.Landing();
 
 const landingDuplex = R.end;
 const showDuplex = R.lit('show').then(R.end);
@@ -109,6 +112,7 @@ And your [routing state](#what-should-my-routing-state-be?). It can be anything 
 
 ```ts
 type RoutingState = O.Option<string>
+const defaultRoutingState: RoutingState = O.none;
 ```
 
 ## Usage
@@ -131,8 +135,8 @@ const App = withRouter<RoutingState, RouteADT>(
   ),
   parser,
   formatter,
-  RouteADT.Landing(), // default route used when the parser can't parse a url
-  O.none, // initial routing state
+  defaultRoute,
+  defaultRoutingState,
   (route, managedState) => RouteADT.match<OnRouteResponse<RoutingState, RouteADT>>({
     Show: () => ({
       sync: {

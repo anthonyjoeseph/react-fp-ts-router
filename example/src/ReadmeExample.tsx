@@ -6,13 +6,12 @@ import * as U from 'unionize';
 import withRouter, { UpdateRouter, OnRouteResponse } from "react-fp-ts-router";
 import * as N from 'react-fp-ts-router/lib/Navigation';
 
-type RoutingState = O.Option<string>
-
 const RouteADT = U.unionize({
   Landing: {},
   Show: {},
 });
 type RouteADT = U.UnionOf<typeof RouteADT>
+const defaultRoute: RouteADT = RouteADT.Landing();
 
 const landingDuplex = R.end;
 const showDuplex = R.lit('show').then(R.end);
@@ -23,6 +22,9 @@ const formatter = RouteADT.match({
   Landing: () => R.format(landingDuplex.formatter, {}),
   Show: () => R.format(showDuplex.formatter, {}),
 });
+
+type RoutingState = O.Option<string>
+const defaultRoutingState: RoutingState = O.none;
 
 const Ex = withRouter<RoutingState, RouteADT>(
   ({ routingState, updateRouter }) => pipe(
@@ -41,8 +43,8 @@ const Ex = withRouter<RoutingState, RouteADT>(
   ),
   parser,
   formatter,
-  RouteADT.Landing(), // default route used when the parser can't parse a url
-  O.none, // initial routing state
+  defaultRoute,
+  defaultRoutingState,
   (route, managedState) => RouteADT.match<OnRouteResponse<RoutingState, RouteADT>>({
     Show: () => ({
       sync: {
