@@ -52,7 +52,41 @@ Uses [history](https://github.com/ReactTraining/history#readme) under the hood.
 
 ### What should my routing state be?
 
-If you find yourself pre-loading data before a reroute like this:
+If you find yourself doing a stateful redirect like this:
+
+```tsx
+// Comp.tsx
+componentDidMount() {
+  if (this.state.data === 'bad') {
+    history.push('badRoute');
+  }
+}
+render() {
+  if (this.state.data === 'bad') return <div/>;
+  return (...);
+}
+// in parent component
+{route === 'goodRoute' && (
+  <Comp />
+)}
+```
+
+You should put `data` into `routingState` and do this instead:
+
+```tsx
+// `onRoute` is called before the `route` prop is changed
+const onRoute = (route, routingState) => {
+  if (route === 'goodRoute' && routingState === 'bad') {
+    return {
+      sync: {
+        navigate: Navigate.push(RouteADT.badRoute()),
+      }
+    }
+  } 
+}
+```
+
+If you find yourself pre-loading data before a reroute with a [setState callback](https://reactjs.org/docs/react-component.html#setstate) like this:
 
 ```tsx
 <button onClick={() => {
@@ -110,41 +144,11 @@ const onRoute = (route) => {
 )}
 ```
 
-If you find yourself doing a stateful redirect like this:
+In summary: your routing state should be the state in your app that determines stateful redirects (using `onRoute`), or that needs to be updated before a reroute (using `updateRouter`) or after a reroute (using `onRoute`).
 
-```tsx
-// Comp.tsx
-componentDidMount() {
-  if (this.state.data === 'bad') {
-    history.push('badRoute');
-  }
-}
-render() {
-  if (this.state.data === 'bad') return <div/>;
-  return (...);
-}
-// in parent component
-{route === 'goodRoute' && (
-  <Comp />
-)}
-```
+You could also use routing state to reroute users to a 'loading' route until a fetch call returns, or to reroute unauthenticated users to a login route and back again once they're complete.
 
-You should put `data` into `routingState` and do this instead:
-
-```tsx
-// `onRoute` is called before the `route` prop is changed
-const onRoute = (route, routingState) => {
-  if (route === 'goodRoute' && routingState === 'bad') {
-    return {
-      sync: {
-        navigate: Navigate.push(RouteADT.badRoute()),
-      }
-    }
-  } 
-}
-```
-
-In summary: your routing state should be the state in your app that determines stateful redirects (using `onRoute`), or that needs to be updated before a reroute (using `updateRouter`) or after a reroute (using `onRoute`). Routing state is meant to bridge your routing logic and your render logic, and to de-couple routing logic from the component lifecycle.
+Routing state is meant to bridge your routing logic and your render logic, in order to de-couple routing logic from the component lifecycle.
 
 ### Types
 ```tsx
