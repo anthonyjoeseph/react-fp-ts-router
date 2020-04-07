@@ -67,7 +67,7 @@ function withRouter<S, R, T extends {} = {}>(
 
 | Type Variable | Description |
 | ------------- | ----------- |
-| `S`             | Managed [routing state](#what-should-my-routing-state-be?) |
+| `S`             | [Routing state](#what-should-my-routing-state-be?) type |
 | `R`             | Routing ADT type |
 | `T`             | Other arbitrary props passed into `Router`, defaults to the empty object |
 
