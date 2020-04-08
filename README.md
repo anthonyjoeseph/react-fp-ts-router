@@ -1,5 +1,7 @@
 # react-fp-ts-router
-An [HOC](https://reactjs.org/docs/higher-order-components.html) that builds a router that represents the current route in react state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages arbitrary [routing state](#when-should-i-use-routing-state?), which is the intersection of routing logic and render logic.
+An [HOC](https://reactjs.org/docs/higher-order-components.html) that builds a router that represents the current route in react state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages [interceptable](#what-is-routing-state?).
+
+new change
 
 Thanks to Giulio Canti for [fp-ts](https://github.com/gcanti/fp-ts) and [fp-ts-routing](https://github.com/gcanti/fp-ts-routing). Thanks [React Training](https://reacttraining.com/) for [`history`](https://github.com/ReactTraining/history).
 
@@ -8,180 +10,255 @@ Thanks to Giulio Canti for [fp-ts](https://github.com/gcanti/fp-ts) and [fp-ts-r
 
 # Usage
 
-## `withRouter` example
-
-[Example code](https://github.com/anthonyjoeseph/react-fp-ts-router/blob/master/example/src/ReadmeExample.tsx)
-
 Check out the [fp-ts-routing docs](https://github.com/gcanti/fp-ts-routing#usage) for more info on parsers and formatters.
 
-This example uses [`unionize`](https://github.com/pelotom/unionize) for its route [ADT](https://jrsinclair.com/articles/2019/algebraic-data-types-what-i-wish-someone-had-explained-about-functional-programming/), but you could use simple [union types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types) and [type guards](https://www.typescriptlang.org/docs/handbook/advanced-types.html#user-defined-type-guards), or you could use the [fp-ts-codegen playground](https://gcanti.github.io/fp-ts-codegen/) to easily generate an ADT and its associated functions.
+These examples use [`unionize`](https://github.com/pelotom/unionize) for their route [ADTs](https://jrsinclair.com/articles/2019/algebraic-data-types-what-i-wish-someone-had-explained-about-functional-programming/), but you could use simple [union types](https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types) and [type guards](https://www.typescriptlang.org/docs/handbook/advanced-types.html#user-defined-type-guards), or you could use the [fp-ts-codegen playground](https://gcanti.github.io/fp-ts-codegen/) to easily generate ADTs and their associated functions.
 
-## `withSimpleRouter`
+## `withStaticRouter`
 
-If your app is static or has no need to update state in relation to routing, you can use `withSimpleRouter`. Be advised, however, that if [react routing anti-patterns](#when-should-i-use-routing-state?) start to creep into your app, you should use `withRouter` instead.
+If your app has no state that depends on or affects the way the current route changes, you can use `withStaticRouter`. Be advised, however, that if [routing anti-patterns](#when-do-i-need-an-interceptable?) start to creep into your app, you should use `withInterceptingRouter` and an [`interceptable`](#what-is-an-interceptable?) instead.
+
+This example creates a web app with the following rules:
+  - At the '/' route, it renders a 'show' button that reroutes to '/show'
+  - At the '/show' route, it renders a 'hide' button that reroutes to '/'.
+  - At a route it doesn't recognize, it behaves as though it's at the '/' route.
+
+[Example code](https://github.com/anthonyjoeseph/react-fp-ts-router/blob/master/example/src/SimpleRouterExample.tsx)
+
+## `withInterceptingRouter` example
+
+This example uses a simple [optional](https://github.com/gcanti/fp-ts/blob/master/test/Option.ts) `string` as its [`interceptable`](#what-is-an-interceptable?). This `interceptable` will be set differently depending on how the app's route is changed.
+
+It creates a web app with the following rules:
+  - When there is some `interceptable`, it renders a `HasText` component
+  - Otherwise, it renders a `NoText` component.
+  - `HasText` renders:
+    - the text inside the `interceptable`
+    - a button that:
+      - sets the `interceptable` to none, and then:
+      - reroutes to '/'.
+  - `NoText` renders:
+    - the static text 'Landing'
+    - a button that:
+      - sets the `interceptable` to 'from button', and then:
+      - reroutes to '/show'
+  - At the '/show' route:
+    - if there is no render state, it sets the `interceptable` to 'from route'
+  - At a route it doesn't recognize
+    - it reroutes to '/'.
+
+[Example code](https://github.com/anthonyjoeseph/react-fp-ts-router/blob/master/example/src/InterceptingRouterExample.tsx)
+
+# What is an interceptable?
+
+An `interceptable` models state that depends on or affects the way the current route changes.
+
+An `interceptable` is used to de-couple routing logic from the component lifecycle.
+
+# When do I need an interceptable?
+
+Here are common routing anti-patterns that appear when using `withStaticRouter`, and alternative solutions that use `interceptable` and `withInterceptingRouter`.
+
+## Stateful redirection
+
+If you're using `withStaticRouter` and you find yourself doing a stateful redirect like this:
 
 ```tsx
-const App = withSimpleRouter<RouteADT>(
-  ({ route, setRoute }) => route.tag === 'Landing'
-    ? (
-      <div>
-        <button onClick={() => setRoute(N.push(RouteADT.Show()))}>
-          show
-        </button>
-      </div>
-    ) : (
-      <div>
-        <button onClick={() => setRoute(N.push(RouteADT.Landing()))}>
-          hide
-        </button>
-      </div>
-    ),
-  parser,
-  formatter,
-  defaultRoute,
-);
-```
-
-# When should I use routing state?
-
-## Stateful redirects
-
-If you're using `withSimpleRouter` and you find yourself doing a stateful redirect like this:
-
-```tsx
-// Comp.tsx
+// Redirector.tsx
 componentDidMount() {
-  if (this.props.data === 'bad') {
-    this.props.setRoute(N.push(RouteADT.badRoute()));
-  }
+  navigate(N.push(RouteADT.badRoute()));
 }
 render() {
-  if (this.props.data === 'bad') return null;
-  return (...);
+  return null;
 }
 // in parent component
-{route === 'goodRoute' && (
-  <Comp
-    data={data}
-  />
+{route === RouteADT.goodRoute() && (
+  data.type === 'bad'
+    ? (
+      <Redirector />
+    )
+    : (
+      <Comp
+        data={data.good}
+      />
+    )
 )}
 ```
 
-You should use `withRouter` instead, and move `data` into `routingState`:
+You might be frustrated that `Redirector` is forced to implement `render`. You might also recognize this as [`UNSAFE_componentWillReceiveProps`](https://reactjs.org/docs/react-component.html#unsafe_componentwillreceiveprops) in disguise.
+
+You should use `withInterceptingRouter` instead, and move `data` into your `interceptable`:
 
 ```tsx
-// the navigation will be invoked before the `route` prop is updated
-const onRoute = (route, routingState) => {
-  if (route === 'goodRoute' && routingState.data === 'bad') {
+const interceptRoute = (route, interceptable) => {
+  if (route === 'goodRoute' && interceptable.data.type === 'bad') {
     return {
       sync: {
-        navigate: Navigate.push(RouteADT.badRoute()),
+        redirect: Navigate.push(RouteADT.badRoute()),
       }
     }
   } 
 }
-```
-
-## Loading data before a reroute
-
-If you're using `withSimpleRouter` and you find yourself loading data before a reroute with a [setState callback](https://reactjs.org/docs/react-component.html#setstate) like this:
-
-```tsx
-<button onClick={() => {
-  T.task.map(preLoadData, data => {
-    this.setState({ data }, () => this.props.setRoute(RouteADT.newRoute()));
-  })()
-}}>load stuff</button>
-```
-
-You should use `withRouter` instead, and move `data` into `routingState`:
-
-```tsx
-// `updateRouter` will update your routing state before the reroute is triggered
-<button onClick={() => {
-  T.task.map(preLoadData, data => this.props.updateRouter({
-    routingState: {
-      ...this.props.routingState,
-      data,
-    },
-    navigation: N.push(RouteADT.route()),
-  }))()
-}}>load stuff</button>
+// in parent component
+{route === 'goodRoute' && interceptable.data.type !== 'bad' (
+  <Comp
+    goodData={data.good}
+  />
+)}
 ```
 
 ## Loading data after a reroute
 
-If you're using `withSimpleRouter` and you find yourself initializing data after a reroute like this:
+If you're using `withStaticRouter` and you find yourself initializing data after a reroute like this:
 
 ```tsx
-// Comp.tsx
+// HandleDataInitialization.tsx
+state = { data: undefined };
 componentDidMount() {
-  this.props.setRoute(N.push(RouteADT.loadingRoute()));
-  T.task.map(initializeData, data => this.setState({ data }))();
+  if (this.props.route === RouteADT.loadedRoute()) {
+    // this.state.data can't be initialized yet,
+    // because this.state.data is always
+    // undefined on componentDidMount(), so
+    // redirect to RouteADT.loadingRoute()
+    navigate(N.push(RouteADT.loadingRoute()));
+  }
+  // runInitialize() will only be invoked once, even
+  // after a redirect from RouteADT.loadedRoute(),
+  // because this component is rendered at both
+  // RouteADT.loadingRoute() and RouteADT.loadedRoute()
+  // so a redirect will not trigger a new componentDidMount()
+  const runInitialize = T.task.map(initializeData(), data => {
+    this.setState({ data });
+    navigate(N.push(RouteADT.loadedRoute()));
+  });
+  runInitialize();
 }
 render(){
-  if (this.state.data === undefined) return null;
-  return (...);
+  if (this.state.data === undefined) return (
+    <Loading />
+  );
+  return (
+    <Loaded
+      data={this.state.data}
+    />
+  );
 }
 // in parent component
-{ route === RouteADT.newRoute() && (
-  <Comp />
-)}
-{ route === RouteADT.loadingRoute() && (
-  <Loading />
+{ (route === RouteADT.loadedRoute() || route === RouteADT.loadingRoute()) && (
+  <HandleDataInitialization />
 )}
 ```
 
-You should use `withRouter` instead, and move `data` into `routingState`:
+You should be appalled at your impenetrable routing logic. You might also recognize this as [`UNSAFE_componentWillReceiveProps`](https://reactjs.org/docs/react-component.html#unsafe_componentwillreceiveprops) in an even sneakier disguise.
+
+You should use `withInterceptingRouter` instead, and move `data` into your `interceptable`:
 
 ```tsx
-// the synchronous navigation will be invoked
-// before the `route` prop is updated
-const onRoute = (route) => {
-  if (route === RouteADT.newRoute()) {
+const interceptRoute = (route, interceptable) => {
+  if (
+    route === RouteADT.loadedRoute()
+    && interceptable.data === undefined
+  ) {
     return {
       sync: {
-        navigate: N.push(RouteADT.loadingRoute()),
+        redirect: N.push(RouteADT.loadingRoute()),
       }
-      async: T.task.map(initializeData, data => ({
-        routingState: {
-          ...this.props.routingState,
+    };
+  }
+  if (route === RouteADT.loadingRoute()) {
+    return {
+      async: T.task.map(initializeData(), data => ({
+        interceptable: {
+          ...this.props.interceptable,
           data,
         }
-      }))
+        redirect: N.push(RouteADT.loadedRoute())
+      })),
     }
-  } 
+  }
 }
 // in parent component
-{route === RouteADT.route() && routingState.data !== undefined (
-  <Comp
-    data={routingState.data}
-  />
-)}
-{route === routeADT.loadingRoute() && (
-  <Loading />
+{(
+  route === routeADT.loadedRoute() || route === RouteADT.loadingRoute()
+) && (
+  interceptable.data !== undefined
+    ? <Loaded
+      data={interceptable.data}
+    />
+    : <Loading />
 )}
 ```
-
-## Summary
-
-Your routing state should be the state in your app that determines stateful redirects (using `onRoute`), or that needs to be updated before a reroute (using `updateRouter`) or after a reroute (using `onRoute`).
-
-Routing state is meant to bridge your routing logic and your render logic, in order to de-couple routing logic from the component lifecycle.
 
 # FAQ
 
+## Why does `setInterceptable` return a `Task<void>`? It's annoying that I have to remember to invoke it every time I use it
+
+### Loading data before a reroute
+
+If you do this:
+
+```tsx
+// in a component
+<button onClick={() => {
+  const runReroutedData = T.task.map(
+    loadReroutedData(),
+    reroutedData => {
+      navigate(RouteADT.loadedRoute());
+      const runSetInterceptable = this.props.setInterceptable(reroutedData);
+      runSetInterceptable();
+    }
+  );
+  runReroutedData();
+}}>reroute</button>
+// in your interceptRoute
+const interceptRoute = (
+  route: RouteADT,
+  interceptable: interceptable
+) => {
+  if (route === RouteADT.loadedRoute() && interceptable === undefined) {
+    return {
+      async: T.task.map(loadInitializedData, initializedData => {
+        return {
+          interceptable: initializedData,
+        }
+      }),
+    }
+  }
+}
+```
+
+You may be surprised that clicking `reroute` causes interceptable to be set to `initializedData`.
+
+This is because `navigate` triggers `interceptRoute` before `setInterceptable` can enqueue changes to `interceptable`. This causes `interceptRoute` to handle `loadedRoute` as though it must be initialized, and `initializedData` will eventually clobber `reroutedData`.
+
+You should do this instead:
+
+```tsx
+<button onClick={() => {
+  const runReroutedData = pipe(
+    preLoadData(),
+    T.chain(this.props.setInterceptable),
+    T.map(() => navigate(N.push(RouteADT.route()))),
+  );
+  runReroutedData();
+}}>load stuff</button>
+```
+
+The `Task` returned by `setInterceptable` uses a [`setState` callback](https://reactjs.org/docs/react-component.html#setstate) to ensure `interceptable` is updated before it resolves.
+
+While it may be annoying to have to invoke this task every time you want to use `setInterceptable`, it forces you to consider its runtime asynchronicity at compile time. As we have seen, it can be dangerous to think of `setInterceptable` as synchronous.
+
 ## Can I have more than one router in my app?
 
-You can, but you shouldn't. React offers no way to enforce this at compile time, but if `react-fp-ts-router` could prevent multiple router components or multiple instances of router components, it would. `withRouter` is an [HOC](https://reactjs.org/docs/higher-order-components.html) only because its parameters are constants, so passing them in through props wouldn't make sense. It's not meant to create a reusable component.
+You can, but you shouldn't. React offers no way to enforce this at compile time, but if `react-fp-ts-router` could prevent multiple router components or multiple instances of router components, it would. `withInterceptingRouter` is an [HOC](https://reactjs.org/docs/higher-order-components.html) only because its parameters are constants, so passing them in through props wouldn't make sense. It's not meant to create a reusable component.
 
-The route prop provided to the router is meant to be the [single source of truth](https://en.wikipedia.org/wiki/Single_source_of_truth) of the browser's current route.
+The `route` prop provided to the router is meant to be the [single source of truth](https://en.wikipedia.org/wiki/Single_source_of_truth) of the browser's current route.
 
 ## Isn't it cumbersome to [drill](https://kentcdodds.com/blog/prop-drilling/) the current route through all of my components's props?
 
-While you are able to avoid this using [react context](https://reactjs.org/docs/context.html), route 'drilling' is actually a feature.
+While you are encouraged to use [react context](https://reactjs.org/docs/context.html) to avoid drilling `interceptable` and `setInterceptable`, drilling `route` is actually a feature.
 
-A best practice of this library is to nest several routing ADTs together to mirror your app's component tree hierarchy. This enables you to ensure correctness at compile time and eliminates null-checking. In this example, we see that the `LoggedIn` and `LoggedOut` components are relieved of the responsibility of handling irrelevant routes. This is one advantage we gain by having the current route represented globally.
+A good practice with this library is to nest several routing ADTs together to mirror your app's component tree hierarchy. This enables you to ensure the correctness of your render logic at compile time. In this example, we see that the `LoggedIn` and `LoggedOut` components are relieved of the responsibility of handling irrelevant routes. This is one advantage we gain by having the current route represented globally.
 
 ```tsx
 type AppRoute = {
@@ -211,17 +288,17 @@ const Root = ({ route }: { route: AppRoute }) => {
 }
 ```
 
-## Why is routing state global?
+## Why is interceptable global?
 
-At first, this seems unintuitive. One of the advantages of React is that it allows state to be split into components. Distributing state across many components minimizes re-renders and encapsulates relevant information. All of becomes impossible when state is consolidated in your topmost component.
+At first, this seems unintuitive. One of the advantages of React is that it allows state to be distributed across many components. This [minimizes re-renders](#minimizing-re-renders-functionally) and [localizes interrelated data within the nodes of a deeply nested tree](#transforming-deeply-nested-state-functionally). All of these advantages seem lost when state is consolidated in your topmost component.
 
-However, routing state is tightly coupled to the current route. Since the current route is global, routing state by definition must also be global.
+However, `interceptable` is tightly coupled to the current route because, by definition, it depends on or affects the way the current route changes. Since the current route is global, interceptable must also be global.
 
-On closer analysis, this makes sense. `onRoute` must handle any incoming route, so the state it modifies should model every possible outcome. `updateRouter` can navigate to any possible route, so the state it updates could affect any of them.
+On closer analysis, this makes sense. `interceptRoute` must handle any incoming route, so it wouldn't make sense to have multiple `interceptRoute`s that handled different `interceptable`s because they would have overlapping domains.
 
-### Mitigating the pain
+### Minimizing re-renders functionally
 
-For these reasons listed above, routing state should be minimal. State unrelated to the current route should be handled elsewhere.
+For these reasons listed above, interceptable should be minimal. State unrelated to the current route should be handled elsewhere.
 
 Use [`shouldComponentUpdate`](https://reactjs.org/docs/optimizing-performance.html#avoid-reconciliation) to prevent unwanted re-renders, or its function component analog, [`React.memo`](https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-shouldcomponentupdate):
 
@@ -250,21 +327,23 @@ const Memoized = reactMemoEq(
     num: E.eqNum,
   }),
 )
-const Landing = ({ routingState }) => (
+const Landing = ({ interceptable }) => (
   <Memoized
-    text={routingState.text}
-    num={routingState.num}
+    text={interceptable.text}
+    num={interceptable.num}
   />
 );
 ```
 
-Additionally, [Optics](https://github.com/gcanti/monocle-ts) can help you transform deeply nested routing state:
+### Transforming deeply nested state functionally
+
+[Optics](https://github.com/gcanti/monocle-ts) can help you transform deeply nested interceptable:
 
 ```ts
 import * as M from 'monocle-ts';
 import * as T from 'fp-ts/lib/Task';
 import { pipe } from 'fp-ts/lib/pipeable';
-interface RoutingState {
+interface interceptable {
   user: {
     memories: {
       childhood: {
@@ -273,20 +352,20 @@ interface RoutingState {
     }
   }
 }
-const favoriteColorLens = M.Lens.fromPath<RoutingState>()([
+const favoriteColorLens = M.Lens.fromPath<interceptable>()([
   'user', 'memories', 'childhood', 'favoriteColor',
 ]);
-const onRoute = (route: R, routingState: RoutingState) => {
+const interceptRoute = (route: R, interceptable: interceptable) => {
   if (
     route.type === 'favoriteColorRoute'
-    && favoriteColorLens.get(routingState) === undefined
+    && favoriteColorLens.get(interceptable) === undefined
   ) {
     return {
       async: {
-        routingState: pipe(
+        interceptable: pipe(
           loadFavoriteColor(),
           T.map(
-            (favoriteColor) => favoriteColorLens.set(favoriteColor)(routingState)
+            (favoriteColor) => favoriteColorLens.set(favoriteColor)(interceptable)
           )
         )
       },
@@ -297,17 +376,36 @@ const onRoute = (route: R, routingState: RoutingState) => {
 
 # Docs
 
-## `withSimpleRouter` [HOC](https://reactjs.org/docs/higher-order-components.html)
+## `createNavigator`
 
-### `withSimpleRouter` Output Prop Types
+`createNavigator` creates a function that you can export and use anywhere in your app to reroute using the provided routing [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf). Internally, `withInterceptingRouter` uses `createNavigator` for redirects.
 
-The `Router` component that `withRouter` wraps is given the props `SimpleRouterProps<R>`:
+### `createNavigator` Function Type
+
+```ts
+export function createNavigator <R>(
+  formatter: ((r: R) => string),
+): (navigation: N.Navigation<R>) => void
+```
+
+| Type Variable | Description |
+| ------------- | ----------- |
+| `R`             | Routing ADT type |
+
+| Param  | Description  |
+| ------ | ------------ |
+| `formatter` | Converts routing ADT into a url path string |
+
+## `withStaticRouter` [HOC](https://reactjs.org/docs/higher-order-components.html)
+
+### `withStaticRouter` Output Prop Types
+
+The `Router` component that `withInterceptingRouter` wraps is given the props `SimpleRouterProps<R>`:
 
 ```ts
 import * as N from 'react-fp-ts-routing/lib/Navigation';
 interface SimpleRouterProps<R> {
   route: R;
-  setRoute: (navigation: N.Navigation<R>) => void;
 }
 ```
 | Type Variable | Description |
@@ -317,15 +415,14 @@ interface SimpleRouterProps<R> {
 | Prop  | Description  |
 | ------ | ------------ |
 | `route` | Your app's current route, represented as your routing ADT |
-| `setRoute` | Updates router with a [`Navigation`](#internal-adts) wrapping a routing ADT |
 
-### `withSimpleRouter` Function Type
+### `withStaticRouter` Function Type
 ```tsx
 import { Parser } from 'fp-ts-routing'
 import * as N from 'react-fp-ts-routing/lib/Navigation'
 import * as A from 'react-fp-ts-routing/lib/Action'
 import * as History from 'history'
-function withSimpleRouter<R, T extends {} = {}>(
+function withStaticRouter<R, T extends {} = {}>(
   Router: React.ComponentType<T & SimpleRouterProps<R>>,
   parser: Parser<R>,
   formatter: ((r: R) => string),
@@ -342,68 +439,67 @@ function withSimpleRouter<R, T extends {} = {}>(
 | ------ | ------------ |
 | `Router`  | Your app's router component |
 | `parser` | Converts url path strings into routing ADT |
-| `formatter` | Converts routing ADT into a url path string |
 | `notFoundRoute` | ADT to use when `parser` can't find a route |
 
-## `withRouter` [HOC](https://reactjs.org/docs/higher-order-components.html)
+## `withInterceptingRouter` [HOC](https://reactjs.org/docs/higher-order-components.html)
 
-### `withRouter` Output Prop Types
+### `withInterceptingRouter` Output Prop Types
 
-The `Router` component that `withRouter` wraps is given the props `RouterProps<S, R>`:
+The `Router` component that `withInterceptingRouter` wraps is given the props `RouterProps<S, R>`:
 
 ```ts
 import * as N from 'react-fp-ts-routing/lib/Navigation';
 type UpdateRouter<S, R> = (params: UpdateRouterParams<S, R>) => void;
 interface UpdateRouterParams<S, R> {
-  routingState?: S;
+  interceptable?: S;
   navigation?: N.Navigation<R>;
 }
 interface RouterProps<S, R> {
-  routingState: S;
+  interceptable: S;
   route: R;
   updateRouter: (u: UpdateRouterParams<S, R>) => void;
 }
 ```
 | Type Variable | Description |
 | ------------- | ----------- |
-| `S`             | [Routing state](#when-should-i-use-routing-state?) type |
+| `S`             | [interceptable](#what-is-routing-state?) type |
 | `R`             | Routing ADT type |
 
 | Prop  | Description  |
 | ------ | ------------ |
-| `routingState`  | Your router's [routing state](#when-should-i-use-routing-state?) |
+| `interceptable`  | Your router's [interceptable](#what-is-routing-state?) |
 | `route` | Your app's current route, represented as your routing ADT |
-| `updateRouter` | Updates router with a [`Navigation`](#internal-adts) wrapping a routing ADT and/or new [routing state](#when-should-i-use-routing-state?) |
+| `updateRouter` | Optionally updates [interceptable](#what-is-routing-state?) and then optionally invokes a [`Navigation`](#internal-adts) |
 
-### `withRouter` Function Type
+### `withInterceptingRouter` Function Type
 ```tsx
 import { Parser } from 'fp-ts-routing'
 import * as N from 'react-fp-ts-routing/lib/Navigation'
 import * as A from 'react-fp-ts-routing/lib/Action'
 import * as History from 'history'
-type OnRoute<S, R> = (
-  newRoute: R,
-  routingState: S,
+type interceptRoute<S, R> = (
+  loadedRoute: R,
+  interceptable: S,
   oldRoute: R,
   Action: A.Action,
-) => OnRouteResponse<S, R>;
-interface OnRouteResponse<S, R> {
+) => interceptRouteResponse<S, R>;
+interface interceptRouteResponse<S, R> {
   sync?: UpdateRouterParams<S, R>;
   async?: T.Task<UpdateRouterParams<S, R>>;
 }
-function withRouter<S, R, T extends {} = {}>(
+function withInterceptingRouter<S, R, T extends {} = {}>(
   Router: React.ComponentType<T & ManagedStateRouterProps<S, R>>,
   parser: Parser<R>,
   formatter: ((r: R) => string),
   notFoundRoute: R,
   defaultManagedState: S,
-  onRoute?: OnRoute<S, R>,
+  interceptRoute?: interceptRoute<S, R>,
 ): React.ComponentType<T>
 ```
 
 | Type Variable | Description |
 | ------------- | ----------- |
-| `S`             | [Routing state](#when-should-i-use-routing-state) type |
+| `S`             | [interceptable](#what-is-routing-state) type |
 | `R`             | Routing ADT type |
 | `T`             | Other arbitrary props passed into `Router`, defaults to the empty object |
 
@@ -413,8 +509,8 @@ function withRouter<S, R, T extends {} = {}>(
 | `parser` | Converts url path strings into routing ADT |
 | `formatter` | Converts routing ADT into a url path string |
 | `notFoundRoute` | ADT to use when `parser` can't find a route |
-| `defaultRoutingState` | Populates [routing state](#when-should-i-use-routing-state?) before component is mounted |
-| `onRoute` | Updates the router using the new route and preexisting [routing state](#when-should-i-use-routing-state?) |
+| `defaultinterceptable` | Populates [interceptable](#what-is-routing-state?) before component is mounted |
+| `interceptRoute` | Updates the router using the new route and preexisting [interceptable](#what-is-routing-state?) |
 
 ## Internal ADTs
 

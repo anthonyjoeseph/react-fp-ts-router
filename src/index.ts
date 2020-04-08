@@ -1,20 +1,22 @@
-import withRouter, {
+import withInterceptingRouter, {
   reactMemoEq,
-  UpdateRouter,
-  UpdateRouterParams,
-  OnRoute,
-  OnRouteResponse,
-  RouterProps,
-} from "./withRouter";
-import withSimpleRouter from './withSimpleRouter';
+  InterceptRoute,
+  InterceptRouteResponse,
+  Interception,
+  InterceptingRouterProps,
+  SetInterceptable,
+  createNavigator,
+} from "./withInterceptingRouter";
+import withStaticRouter from './withStaticRouter';
 
 export {
   reactMemoEq,
-  UpdateRouter,
-  UpdateRouterParams,
-  OnRoute,
-  OnRouteResponse,
-  RouterProps,
-  withRouter,
-  withSimpleRouter,
+  InterceptRoute,
+  InterceptRouteResponse,
+  Interception,
+  InterceptingRouterProps,
+  SetInterceptable,
+  createNavigator,
+  withInterceptingRouter,
+  withStaticRouter,
 };

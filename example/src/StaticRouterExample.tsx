@@ -1,7 +1,7 @@
 import React from 'react';
 import * as U from 'unionize';
 import * as R from 'fp-ts-routing';
-import { withSimpleRouter } from 'react-fp-ts-router';
+import { withStaticRouter, createNavigator } from 'react-fp-ts-router';
 import * as N from 'react-fp-ts-router/lib/Navigation';
 
 const RouteADT = U.unionize({
@@ -21,23 +21,24 @@ const formatter = RouteADT.match({
   Show: () => R.format(showDuplex.formatter, {}),
 });
 
-const App = withSimpleRouter<RouteADT>(
-  ({ route, setRoute }) => route.tag === 'Landing'
-    ? (
-      <div>
-        <button onClick={() => setRoute(N.push(RouteADT.Show()))}>
-          show
-        </button>
-      </div>
-    ) : (
-      <div>
-        <button onClick={() => setRoute(N.push(RouteADT.Landing()))}>
-          hide
-        </button>
-      </div>
-    ),
+const navigate = createNavigator(formatter);
+
+const App = withStaticRouter<RouteADT>(
+  ({ route }) => route.tag === 'Landing'
+  ? (
+    <div>
+      <button onClick={() => navigate(N.push(RouteADT.Show()))}>
+        show
+      </button>
+    </div>
+  ) : (
+    <div>
+      <button onClick={() => navigate(N.push(RouteADT.Landing()))}>
+        landing
+      </button>
+    </div>
+  ),
   parser,
-  formatter,
   defaultRoute,
 );
 
