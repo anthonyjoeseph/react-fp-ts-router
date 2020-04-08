@@ -14,7 +14,7 @@ These examples use [`unionize`](https://github.com/pelotom/unionize) for their r
 
 ## `withStaticRouter`
 
-If your app has no state that depends on or affects the way the current route changes, you can use `withStaticRouter`. Be advised, however, that if [routing anti-patterns](#when-do-i-need-an-interceptable?) start to creep into your app, you should use `withInterceptingRouter` and an [`interceptable`](#what-is-an-interceptable?) instead.
+If your app has no state that depends on or affects the way the current route changes, you can use `withStaticRouter`. Be advised, however, that if [routing anti-patterns](#when-do-i-need-an-interceptable) start to creep into your app, you should use `withInterceptingRouter` and an [`interceptable`](#what-is-an-interceptable?) instead.
 
 This example creates a web app with the following rules:
   - At the '/' route, it renders a 'show' button that reroutes to '/show'
