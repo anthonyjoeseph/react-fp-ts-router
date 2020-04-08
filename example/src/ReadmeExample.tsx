@@ -3,8 +3,8 @@ import * as O from 'fp-ts/lib/Option';
 import { pipe } from 'fp-ts/lib/pipeable';
 import * as R from 'fp-ts-routing';
 import * as U from 'unionize';
-import withRouter, { UpdateRouter, OnRouteResponse } from "../../src/withRouter";
-import * as N from '../../src/Navigation';
+import { withRouter, UpdateRouter, OnRouteResponse } from "react-fp-ts-router";
+import * as N from 'react-fp-ts-router/lib/Navigation';
 
 const RouteADT = U.unionize({
   Landing: {},

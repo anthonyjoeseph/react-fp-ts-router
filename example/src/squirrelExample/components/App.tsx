@@ -1,4 +1,4 @@
-import withRouter from '../../../../src/withRouter';
+import { withRouter } from 'react-fp-ts-router';
 import { defaultAppState, AppState } from '../logic/AppState';
 import onRoute from '../logic/OnRoute';
 import Landing from './Landing';

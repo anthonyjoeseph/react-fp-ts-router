@@ -1,8 +1,8 @@
 import React from 'react';
 import * as U from 'unionize';
 import * as R from 'fp-ts-routing';
-import withSimpleRouter from '../../src/withSimpleRouter';
-import * as N from '../../src/Navigation';
+import { withSimpleRouter } from 'react-fp-ts-router';
+import * as N from 'react-fp-ts-router/lib/Navigation';
 
 const RouteADT = U.unionize({
   Landing: {},
@@ -25,7 +25,6 @@ const App = withSimpleRouter<RouteADT>(
   ({ route, setRoute }) => route.tag === 'Landing'
     ? (
       <div>
-        Landing
         <button onClick={() => setRoute(N.push(RouteADT.Show()))}>
           show
         </button>

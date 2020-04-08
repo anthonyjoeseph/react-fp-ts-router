@@ -25,7 +25,6 @@ const App = withSimpleRouter<RouteADT>(
   ({ route, setRoute }) => route.tag === 'Landing'
     ? (
       <div>
-        Landing
         <button onClick={() => setRoute(N.push(RouteADT.Show()))}>
           show
         </button>

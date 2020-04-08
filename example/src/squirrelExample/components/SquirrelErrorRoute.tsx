@@ -1,5 +1,5 @@
 import React from 'react';
-import { UpdateRouter } from '../../../../src/withRouter';
+import { UpdateRouter } from 'react-fp-ts-router';
 import { AppState } from '../logic/AppState';
 import DismissSquirrelButton from './DismissSquirrelButton';
 import { SquirrelError, SquirrelErrorType } from '../logic/SquirrelREST';
