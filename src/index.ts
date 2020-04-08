@@ -1,17 +1,20 @@
-import withManagedStateRouter, {
+import withRouter, {
+  reactMemoEq,
   UpdateRouter,
   UpdateRouterParams,
   OnRoute,
   OnRouteResponse,
-  ManagedStateRouterProps,
+  RouterProps,
 } from "./withRouter";
-
-export default withManagedStateRouter;
+import withSimpleRouter from './withSimpleRouter';
 
 export {
+  reactMemoEq,
   UpdateRouter,
   UpdateRouterParams,
   OnRoute,
   OnRouteResponse,
-  ManagedStateRouterProps,
+  RouterProps,
+  withRouter,
+  withSimpleRouter,
 };

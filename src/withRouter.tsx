@@ -1,11 +1,22 @@
 import React, { Component } from 'react';
 import * as T from 'fp-ts/lib/Task';
+import * as E from 'fp-ts/lib/Eq';
 import * as O from 'fp-ts/lib/Option';
 import { pipe } from 'fp-ts/lib/pipeable';
 import * as History from 'history';
 import { parse, Route, Parser } from 'fp-ts-routing';
 import * as N from './Navigation';
 import * as A from './Action';
+
+export function reactMemoEq<P> (
+  comp: React.ComponentType<P>,
+  eq: E.Eq<P>,
+): React.MemoExoticComponent<React.ComponentType<P>> {
+  return React.memo(
+    comp,
+    eq.equals,
+  );
+}
 
 export type UpdateRouter<S, R> = (params: UpdateRouterParams<S, R>) => void;
 
@@ -26,7 +37,7 @@ export interface OnRouteResponse<S, R> {
   async?: T.Task<UpdateRouterParams<S, R>>;
 }
 
-export interface ManagedStateRouterProps<S, R> {
+export interface RouterProps<S, R> {
   routingState: S;
   route: R;
   updateRouter: (u: UpdateRouterParams<S, R>) => void;
@@ -57,7 +68,7 @@ const actionToNavResp = (a: History.Action): A.Action => {
  * @param onRoute - Updates the router using the new route and preexisting routing state
  */
 export default function withRouter<S, R, T extends {} = {}>(
-  Router: React.ComponentType<T & ManagedStateRouterProps<S, R>>,
+  Router: React.ComponentType<T & RouterProps<S, R>>,
   parser: Parser<R>,
   formatter: ((r: R) => string),
   notFoundRoute: R,
@@ -115,6 +126,16 @@ export default function withRouter<S, R, T extends {} = {}>(
         history.listen(handleHistory);
         // invoke onRoute for the initial route
         handleHistory(history.location, history.action);
+      } else {
+        history.listen((location) => {
+          this.setState({
+            route: parse(
+              parser,
+              Route.parse(location.pathname),
+              notFoundRoute,
+            ),
+          });
+        });
       }
     }
 

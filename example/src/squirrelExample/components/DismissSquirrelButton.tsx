@@ -1,7 +1,7 @@
 import React from 'react';
 import * as E from 'fp-ts/lib/Either';
-import { UpdateRouter } from 'react-fp-ts-router';
-import * as N from 'react-fp-ts-router/lib/Navigation';
+import { UpdateRouter } from '../../../../src/withRouter';
+import * as N from '../../../../src/Navigation';
 import { AppState, LoadingError } from '../logic/AppState';
 import { AppRoute } from '../logic/RouteTypes';
 

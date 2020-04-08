@@ -3,15 +3,16 @@ import * as O from 'fp-ts/lib/Option';
 import { pipe } from 'fp-ts/lib/pipeable';
 import * as R from 'fp-ts-routing';
 import * as U from 'unionize';
-import withRouter, { UpdateRouter, OnRouteResponse } from "react-fp-ts-router";
-import * as N from 'react-fp-ts-router/lib/Navigation';
+import withRouter, { UpdateRouter, OnRouteResponse } from "../../src/withRouter";
+import * as N from '../../src/Navigation';
 
 const RouteADT = U.unionize({
   Landing: {},
   Show: {},
+  NotFound: {},
 });
 type RouteADT = U.UnionOf<typeof RouteADT>
-const defaultRoute: RouteADT = RouteADT.Landing();
+const notFoundRoute: RouteADT = RouteADT.NotFound();
 
 const landingDuplex = R.end;
 const showDuplex = R.lit('show').then(R.end);
@@ -21,6 +22,7 @@ const parser = R.zero<RouteADT>()
 const formatter = RouteADT.match({
   Landing: () => R.format(landingDuplex.formatter, {}),
   Show: () => R.format(showDuplex.formatter, {}),
+  NotFound: () => R.format(landingDuplex.formatter, {}),
 });
 
 type RoutingState = O.Option<string>
@@ -43,13 +45,18 @@ const App = withRouter<RoutingState, RouteADT>(
   ),
   parser,
   formatter,
-  defaultRoute,
+  notFoundRoute,
   defaultRoutingState,
   (route, managedState) => RouteADT.match<OnRouteResponse<RoutingState, RouteADT>>({
     Show: () => ({
       sync: {
         routingState: O.isNone(managedState) ? O.some('from route') : managedState,
       },
+    }),
+    NotFound: () => ({
+      sync: {
+        navigation: N.replace(RouteADT.NotFound()),
+      }
     }),
     default: () => ({ }),
   })(route)

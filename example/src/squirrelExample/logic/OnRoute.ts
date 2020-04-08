@@ -1,8 +1,8 @@
 import * as T from 'fp-ts/lib/Task';
 import * as E from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
-import { OnRouteResponse } from 'react-fp-ts-router';
-import * as N from 'react-fp-ts-router/lib/Navigation';
+import { OnRouteResponse } from '../../../../src/withRouter';
+import * as N from '../../../../src/Navigation';
 import { AppState } from './AppState';
 import { getSquirrelFromREST, SquirrelError } from './SquirrelREST';
 import { AppRoute } from './RouteTypes';
