@@ -68,7 +68,7 @@ render() {
 You should use `withRouter` instead, and move `data` into `routingState`:
 
 ```tsx
-// `onRoute` is called before the `route` prop is updated
+// the navigation will be invoked before the `route` prop is updated
 const onRoute = (route, routingState) => {
   if (route === 'goodRoute' && routingState.data === 'bad') {
     return {
@@ -114,6 +114,7 @@ If you're using `withSimpleRouter` and you find yourself initializing data after
 ```tsx
 // Comp.tsx
 componentDidMount() {
+  this.props.setRoute(N.push(RouteADT.loadingRoute()));
   T.task.map(initializeData, data => this.setState({ data }))();
 }
 render(){
@@ -124,19 +125,28 @@ render(){
 { route === RouteADT.newRoute() && (
   <Comp />
 )}
+{ route === RouteADT.loadingRoute() && (
+  <Loading />
+)}
 ```
 
 You should use `withRouter` instead, and move `data` into `routingState`:
 
 ```tsx
-// in your 'withRoute' invocation:
+// the synchronous navigation will be invoked
+// before the `route` prop is updated
 const onRoute = (route) => {
   if (route === RouteADT.newRoute()) {
     return {
-      async: T.task.map(initializeData, data => ({ routingState: {
-        ...this.props.routingState,
-        data,
-      } }))
+      sync: {
+        navigate: N.push(RouteADT.loadingRoute()),
+      }
+      async: T.task.map(initializeData, data => ({
+        routingState: {
+          ...this.props.routingState,
+          data,
+        }
+      }))
     }
   } 
 }
@@ -146,13 +156,14 @@ const onRoute = (route) => {
     data={routingState.data}
   />
 )}
+{route === routeADT.loadingRoute() && (
+  <Loading />
+)}
 ```
 
 ## Summary
 
 Your routing state should be the state in your app that determines stateful redirects (using `onRoute`), or that needs to be updated before a reroute (using `updateRouter`) or after a reroute (using `onRoute`).
-
-You could also use routing state to reroute users to a 'loading' route until a fetch call returns, or to reroute unauthenticated users to a login route and back again once they're complete.
 
 Routing state is meant to bridge your routing logic and your render logic, in order to de-couple routing logic from the component lifecycle.
 
