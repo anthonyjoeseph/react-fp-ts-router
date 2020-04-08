@@ -24,20 +24,22 @@ const formatter = RouteADT.match({
 const navigate = createNavigator(formatter);
 
 const App = withStaticRouter<RouteADT>(
-  ({ route }) => route.tag === 'Landing'
-  ? (
-    <div>
-      <button onClick={() => navigate(N.push(RouteADT.Show()))}>
-        show
-      </button>
-    </div>
-  ) : (
-    <div>
-      <button onClick={() => navigate(N.push(RouteADT.Landing()))}>
-        landing
-      </button>
-    </div>
-  ),
+  ({ route }) => RouteADT.match({
+    Landing: () => (
+      <div>
+        <button onClick={() => navigate(N.push(RouteADT.Show()))}>
+          show
+        </button>
+      </div>
+    ),
+    Show: () => (
+      <div>
+        <button onClick={() => navigate(N.push(RouteADT.Landing()))}>
+          landing
+        </button>
+      </div>
+    ),
+  })(route),
   parser,
   defaultRoute,
 );
