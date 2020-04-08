@@ -21,31 +21,23 @@ This example creates a web app with the following rules:
   - At the '/show' route, it renders a 'hide' button that reroutes to '/'.
   - At a route it doesn't recognize, it behaves as though it's at the '/' route.
 
-[Example code](https://github.com/anthonyjoeseph/react-fp-ts-router/blob/master/example/src/SimpleRouterExample.tsx)
+[Example code](https://github.com/anthonyjoeseph/react-fp-ts-router/blob/master/example/src/StaticRouterExample.tsx)
+
+[Live site](http://static-example-router.s3-website-us-east-1.amazonaws.com/)
 
 ## `withInterceptingRouter` example
 
 This example uses a simple [optional](https://github.com/gcanti/fp-ts/blob/master/test/Option.ts) `string` as its [`interceptable`](#what-is-an-interceptable?). This `interceptable` will be set differently depending on how the app's route is changed.
 
-It creates a web app with the following rules:
-  - When there is some `interceptable`, it renders a `HasText` component
-  - Otherwise, it renders a `NoText` component.
-  - `HasText` renders:
-    - the text inside the `interceptable`
-    - a button that:
-      - sets the `interceptable` to none, and then:
-      - reroutes to '/'.
-  - `NoText` renders:
-    - the static text 'Landing'
-    - a button that:
-      - sets the `interceptable` to 'from button', and then:
-      - reroutes to '/show'
-  - At the '/show' route:
-    - if there is no render state, it sets the `interceptable` to 'from route'
-  - At a route it doesn't recognize
-    - it reroutes to '/'.
+It creates a version of the above example, with the following additional rules:
+  - it displays an `interceptable` at '/show'
+  - the `interceptable` is set to 'from button click' when routed to '/show' from the 'show' button
+  - the `interceptable` is set to 'from route' when routed to '/show' directly from the browser
+  - it redirects any unrecognized route to '/'
 
 [Example code](https://github.com/anthonyjoeseph/react-fp-ts-router/blob/master/example/src/InterceptingRouterExample.tsx)
+
+[Live site](http://intercepting-example-router.s3-website-us-east-1.amazonaws.com/)
 
 # What is an interceptable?
 
