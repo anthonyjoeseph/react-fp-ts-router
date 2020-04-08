@@ -51,17 +51,19 @@ If you're using `withSimpleRouter` and you find yourself doing a stateful redire
 ```tsx
 // Comp.tsx
 componentDidMount() {
-  if (this.state.data === 'bad') {
+  if (this.props.data === 'bad') {
     this.props.setRoute(N.push(RouteADT.badRoute()));
   }
 }
 render() {
-  if (this.state.data === 'bad') return null;
+  if (this.props.data === 'bad') return null;
   return (...);
 }
 // in parent component
 {route === 'goodRoute' && (
-  <Comp />
+  <Comp
+    data={data}
+  />
 )}
 ```
 
