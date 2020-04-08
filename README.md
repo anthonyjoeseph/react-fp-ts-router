@@ -42,7 +42,7 @@ const App = withSimpleRouter<RouteADT>(
 );
 ```
 
-# When should I use [routing state](#withrouter-function-type)?
+# When should I use routing state?
 
 ## Stateful redirects
 
@@ -384,7 +384,7 @@ function withRouter<S, R, T extends {} = {}>(
 
 | Type Variable | Description |
 | ------------- | ----------- |
-| `S`             | [Routing state](#when-should-i-use-routing-state?) type |
+| `S`             | [Routing state](#when-should-i-use-routing-state) type |
 | `R`             | Routing ADT type |
 | `T`             | Other arbitrary props passed into `Router`, defaults to the empty object |
 
