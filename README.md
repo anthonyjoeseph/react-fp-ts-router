@@ -44,7 +44,7 @@ const App = withSimpleRouter<RouteADT>(
 
 # When should I use routing state?
 
-## Stateful Redirects
+## Stateful redirects
 
 If you're using `withSimpleRouter` and you find yourself doing a stateful redirect like this:
 
@@ -80,7 +80,7 @@ const onRoute = (route, routingState) => {
 }
 ```
 
-## Loading Data Before a Reroute
+## Loading data before a reroute
 
 If you're using `withSimpleRouter` and you find yourself loading data before a reroute with a [setState callback](https://reactjs.org/docs/react-component.html#setstate) like this:
 
@@ -104,7 +104,7 @@ You should use `withRouter` instead, and move `data` into `routingState`:
 }}>load stuff</button>
 ```
 
-## Loading Data After a Reroute
+## Loading data after a reroute
 
 If you're using `withSimpleRouter` and you find yourself initializing data after a reroute like this:
 
