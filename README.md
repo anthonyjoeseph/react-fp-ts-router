@@ -70,7 +70,7 @@ You should use `withRouter` instead, and move `data` into `routingState`:
 ```tsx
 // `onRoute` is called before the `route` prop is updated
 const onRoute = (route, routingState) => {
-  if (route === 'goodRoute' && routingState === 'bad') {
+  if (route === 'goodRoute' && routingState.data === 'bad') {
     return {
       sync: {
         navigate: Navigate.push(RouteADT.badRoute()),
@@ -98,7 +98,10 @@ You should use `withRouter` instead, and move `data` into `routingState`:
 // `updateRouter` will update your routing state before the reroute is triggered
 <button onClick={() => {
   T.task.map(preLoadData, data => this.props.updateRouter({
-    routingState: data,
+    routingState: {
+      ...this.props.routingState,
+      data,
+    },
     navigation: N.push(RouteADT.route()),
   }))()
 }}>load stuff</button>
@@ -130,14 +133,17 @@ You should use `withRouter` instead, and move `data` into `routingState`:
 const onRoute = (route) => {
   if (route === RouteADT.newRoute()) {
     return {
-      async: T.task.map(initializeData, data => ({ routingState: data }))
+      async: T.task.map(initializeData, data => ({ routingState: {
+        ...this.props.routingState,
+        data,
+      } }))
     }
   } 
 }
 // in parent component
-{route === RouteADT.route() && routingState !== undefined (
+{route === RouteADT.route() && routingState.data !== undefined (
   <Comp
-    data={routingState}
+    data={routingState.data}
   />
 )}
 ```
