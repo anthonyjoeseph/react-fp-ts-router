@@ -42,7 +42,7 @@ const App = withSimpleRouter<RouteADT>(
 );
 ```
 
-# When should I use routing state?
+# When should I use [routing state](#withrouter-function-type)?
 
 ## Stateful redirects
 
