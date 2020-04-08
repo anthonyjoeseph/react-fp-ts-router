@@ -1,8 +1,6 @@
 # react-fp-ts-router
 An [HOC](https://reactjs.org/docs/higher-order-components.html) that builds a router that represents the current route in react state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages [interceptable](#what-is-routing-state?).
 
-new change
-
 Thanks to Giulio Canti for [fp-ts](https://github.com/gcanti/fp-ts) and [fp-ts-routing](https://github.com/gcanti/fp-ts-routing). Thanks [React Training](https://reacttraining.com/) for [`history`](https://github.com/ReactTraining/history).
 
 ## Installation
