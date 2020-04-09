@@ -381,9 +381,10 @@ const interceptRoute = (route: R, interceptable: MyInterceptable) => {
 ### `createNavigator` Function Type
 
 ```ts
+import { Navigation } from 'react-fp-ts-routing';
 export function createNavigator <R>(
   formatter: ((r: R) => string),
-): (navigation: N.Navigation<R>) => void
+): (navigation: Navigation<R>) => void
 ```
 
 | Type Variable | Description |
@@ -401,7 +402,6 @@ export function createNavigator <R>(
 The `Router` component that `withInterceptingRouter` wraps is given the props `SimpleRouterProps<R>`:
 
 ```ts
-import * as N from 'react-fp-ts-routing/lib/Navigation';
 interface SimpleRouterProps<R> {
   route: R;
 }
@@ -417,8 +417,6 @@ interface SimpleRouterProps<R> {
 ### `withStaticRouter` Function Type
 ```tsx
 import { Parser } from 'fp-ts-routing'
-import * as N from 'react-fp-ts-routing/lib/Navigation'
-import * as A from 'react-fp-ts-routing/lib/Action'
 import * as History from 'history'
 function withStaticRouter<R, T extends {} = {}>(
   Router: React.ComponentType<T & SimpleRouterProps<R>>,
@@ -468,14 +466,13 @@ export type SetInterceptable<I> = (newInterceptable?: I) => T.Task<void>;
 ### `withInterceptingRouter` Function Type
 ```tsx
 import { Parser } from 'fp-ts-routing'
-import * as N from 'react-fp-ts-routing/lib/Navigation'
-import * as A from 'react-fp-ts-routing/lib/Action'
+import { Navigation, Action } from 'react-fp-ts-routing';
 import * as History from 'history'
 type InterceptRoute<R, I> = (
   newRoute: R,
   interceptable: I,
   oldRoute: R,
-  Action: A.Action,
+  Action: Action,
 ) => InterceptRouteResponse<R, I>;
 interface InterceptRouteResponse<R, I> {
   sync?: Interception<R, I>;
@@ -483,7 +480,7 @@ interface InterceptRouteResponse<R, I> {
 }
 interface Interception<R, I> {
   interceptable?: I;
-  redirect?: N.Navigation<R>;
+  redirect?: Navigation<R>;
 }
 function withInterceptingRouter<S, R, T extends {} = {}>(
   Router: React.ComponentType<T & ManagedStateRouterProps<S, R>>,
@@ -518,13 +515,13 @@ function withInterceptingRouter<S, R, T extends {} = {}>(
 
 | `Navigation<R>` Type | Description |
 | ------------- | ----------- |
-| `N.push(route: R)` | Reroutes to routing ADT `R` |
-| `N.replace(route: R)` | Reroutes to routing ADT `R` [without pushing new entry](https://stackoverflow.com/questions/39340108/what-is-the-trade-off-between-history-push-and-replace) onto the [history stack](https://developer.mozilla.org/en-US/docs/Web/API/History_API), so the browser's `back` button won't be able to go back to original location |
-| `N.pushExt(path: string)` | `N.push` that can reroute to somewhere outside of your app |
-| `N.replaceExt(path: string)` | `N.replace` that can reroute to somewhere outside of your app |
-| `N.go(delta: number)` | Moves `delta` number of times through the session [history stack](https://developer.mozilla.org/en-US/docs/Web/API/History_API). Can be positive or negative. |
-| `N.goBack` | Moves back one page in the [history stack](https://developer.mozilla.org/en-US/docs/Web/API/History_API) |
-| `N.goForward` | Moves forward one pack in the [history stack](https://developer.mozilla.org/en-US/docs/Web/API/History_API) |
+| `Navigation.push(route: R)` | Reroutes to routing ADT `R` |
+| `Navigation.replace(route: R)` | Reroutes to routing ADT `R` [without pushing new entry](https://stackoverflow.com/questions/39340108/what-is-the-trade-off-between-history-push-and-replace) onto the [history stack](https://developer.mozilla.org/en-US/docs/Web/API/History_API), so the browser's `back` button won't be able to go back to original location |
+| `Navigation.pushExt(path: string)` | `N.push` that can reroute to somewhere outside of your app |
+| `Navigation.replaceExt(path: string)` | `N.replace` that can reroute to somewhere outside of your app |
+| `Navigation.go(delta: number)` | Moves `delta` number of times through the session [history stack](https://developer.mozilla.org/en-US/docs/Web/API/History_API). Can be positive or negative. |
+| `Navigation.goBack` | Moves back one page in the [history stack](https://developer.mozilla.org/en-US/docs/Web/API/History_API) |
+| `Navigation.goForward` | Moves forward one pack in the [history stack](https://developer.mozilla.org/en-US/docs/Web/API/History_API) |
 
 ### Action
 
@@ -532,9 +529,9 @@ function withInterceptingRouter<S, R, T extends {} = {}>(
 
 | `Action` Type | Description |
 |---------------|-------------|
-| `A.push` | The url was pushed onto the stack. (The user clicked a link, or your app used `N.push`) |
-| `A.pop` | The url was popped from the stack. (The user hit the browser's `back` button, or your app used `N.go` or `N.goBack`) |
-| `A.replace` | The url replaced the top entry of the stack. (Your app used `N.replace`) |
+| `Action.push` | The url was pushed onto the stack. (The user clicked a link, or your app used `N.push`) |
+| `Action.pop` | The url was popped from the stack. (The user hit the browser's `back` button, or your app used `N.go` or `N.goBack`) |
+| `Action.replace` | The url replaced the top entry of the stack. (Your app used `N.replace`) |
 
 
 ## TODO

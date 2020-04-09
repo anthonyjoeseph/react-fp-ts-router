@@ -9,15 +9,15 @@
 import { Eq, fromEquals } from "fp-ts/lib/Eq";
 
 export class Action {
-  constructor(readonly type: "push" |  "pop" | "replace") {}
+  public constructor(readonly type: "push" |  "pop" | "replace") {}
 
-  static push: Action = new Action("push");
+  public static push: Action = new Action("push");
 
-  static pop: Action = new Action("pop");
+  public static pop: Action = new Action("pop");
   
-  static replace: Action = new Action("replace");
+  public static replace: Action = new Action("replace");
 
-  fold<R>(handlers: {
+  public fold<R>(handlers: {
     onpush: () => R;
     onpop: () => R;
     onreplace: () => R;
@@ -29,7 +29,7 @@ export class Action {
     }
   }
 
-  static getEq(): Eq<Action> {
+  public static getEq(): Eq<Action> {
     return fromEquals((x, y) => {
       if (x.type === "push" && y.type === "push") {
         return true;

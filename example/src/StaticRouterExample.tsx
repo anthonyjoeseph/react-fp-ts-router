@@ -1,8 +1,7 @@
 import React from 'react';
 import * as U from 'unionize';
 import * as R from 'fp-ts-routing';
-import { withStaticRouter, createNavigator } from 'react-fp-ts-router';
-import * as N from 'react-fp-ts-router/lib/Navigation';
+import { withStaticRouter, createNavigator, Navigation } from 'react-fp-ts-router';
 
 const RouteADT = U.unionize({
   Landing: {},
@@ -27,14 +26,14 @@ const App = withStaticRouter<RouteADT>(
   ({ route }) => RouteADT.match({
     Landing: () => (
       <div>
-        <button onClick={() => navigate(N.push(RouteADT.Show()))}>
+        <button onClick={() => navigate(Navigation.push(RouteADT.Show()))}>
           show
         </button>
       </div>
     ),
     Show: () => (
       <div>
-        <button onClick={() => navigate(N.push(RouteADT.Landing()))}>
+        <button onClick={() => navigate(Navigation.push(RouteADT.Landing()))}>
           landing
         </button>
       </div>

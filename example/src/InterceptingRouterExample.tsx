@@ -8,8 +8,8 @@ import {
   InterceptRoute, withInterceptingRouter,
   SetInterceptable, createNavigator,
   InterceptRouteResponse,
+  Navigation,
 } from "react-fp-ts-router";
-import * as N from 'react-fp-ts-router/lib/Navigation';
 
 const RouteADT = U.unionize({
   Landing: {},
@@ -44,7 +44,7 @@ const onRoute: InterceptRoute<RouteADT, Interceptable> = (
   }),
   NotFound: () => ({
     sync: {
-      redirect: N.replace(RouteADT.NotFound()),
+      redirect: Navigation.replace(RouteADT.NotFound()),
     }
   }),
   default: () => ({ }),
@@ -84,7 +84,7 @@ const NoText = ({
       onClick={() => {
         const runUpdate = pipe(
           setInterceptable(O.some('from button click')),
-          T.map(() => navigate(N.push(RouteADT.Show()))),
+          T.map(() => navigate(Navigation.push(RouteADT.Show()))),
         );
         runUpdate();
       }}
@@ -108,7 +108,7 @@ const HasText = ({
       onClick={() => {
         const runUpdate = pipe(
           setInterceptable(O.none),
-          T.map(() => navigate(N.push(RouteADT.Landing()))),
+          T.map(() => navigate(Navigation.push(RouteADT.Landing()))),
         );
         runUpdate();
       }}

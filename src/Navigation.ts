@@ -11,7 +11,7 @@
 import { Eq, fromEquals } from "fp-ts/lib/Eq";
 
 export class Navigation<R> {
-  constructor(
+  public constructor(
     readonly subtype: {
       readonly type: "push";
       readonly value0: R;
@@ -34,21 +34,21 @@ export class Navigation<R> {
     }
   ) {}
 
-  push<R>(value0: R): Navigation<R> { return new Navigation({ type: "push", value0 }); }
+  public static push<R>(value0: R): Navigation<R> { return new Navigation({ type: "push", value0 }); }
 
-  pushExt<R>(value0: string): Navigation<R> { return new Navigation({ type: "pushExt", value0 }); }
+  public static pushExt<R>(value0: string): Navigation<R> { return new Navigation({ type: "pushExt", value0 }); }
 
-  replace<R>(value0: R): Navigation<R> { return new Navigation({ type: "replace", value0 }); }
+  public static replace<R>(value0: R): Navigation<R> { return new Navigation({ type: "replace", value0 }); }
 
-  replaceExt<R>(value0: string): Navigation<R> { return new Navigation({ type: "replaceExt", value0 }); }
+  public static replaceExt<R>(value0: string): Navigation<R> { return new Navigation({ type: "replaceExt", value0 }); }
 
-  go<R>(value0: number): Navigation<R> { return new Navigation({ type: "go", value0 }); }
+  public static go<R>(value0: number): Navigation<R> { return new Navigation({ type: "go", value0 }); }
 
-  goBack: Navigation<never> = new Navigation({ type: "goBack" });
+  public static goBack: Navigation<never> = new Navigation({ type: "goBack" });
 
-  goForward: Navigation<never> = new Navigation({ type: "goForward" });
+  public static goForward: Navigation<never> = new Navigation({ type: "goForward" });
 
-  fold<R1>(handlers: {
+  public fold<R1>(handlers: {
     onpush: (value0: R) => R1;
     onpushExt: (value0: string) => R1;
     onreplace: (value0: R) => R1;
@@ -68,7 +68,7 @@ export class Navigation<R> {
     }
   }
 
-  static getEq<R>(eqpushValue0: Eq<R>, eqpushExtValue0: Eq<string>, eqreplaceValue0: Eq<R>, eqreplaceExtValue0: Eq<string>, eqgoValue0: Eq<number>): Eq<Navigation<R>> { return fromEquals((x, y) => { if (x.subtype.type === "push" && y.subtype.type === "push") {
+  public static getEq<R>(eqpushValue0: Eq<R>, eqpushExtValue0: Eq<string>, eqreplaceValue0: Eq<R>, eqreplaceExtValue0: Eq<string>, eqgoValue0: Eq<number>): Eq<Navigation<R>> { return fromEquals((x, y) => { if (x.subtype.type === "push" && y.subtype.type === "push") {
     return eqpushValue0.equals(x.subtype.value0, y.subtype.value0);
   } if (x.subtype.type === "pushExt" && y.subtype.type === "pushExt") {
     return eqpushExtValue0.equals(x.subtype.value0, y.subtype.value0);
