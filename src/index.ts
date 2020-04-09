@@ -8,6 +8,8 @@ import withInterceptingRouter, {
   createNavigator,
 } from "./withInterceptingRouter";
 import withStaticRouter from './withStaticRouter';
+import { Navigation } from './Navigation';
+import { Action } from './Action';
 
 export {
   reactMemoEq,
@@ -19,4 +21,6 @@ export {
   createNavigator,
   withInterceptingRouter,
   withStaticRouter,
+  Navigation,
+  Action,
 };

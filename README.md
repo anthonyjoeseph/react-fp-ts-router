@@ -1,5 +1,5 @@
 # react-fp-ts-router
-An [HOC](https://reactjs.org/docs/higher-order-components.html) that builds a router that represents the current route in react state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) and safely manages [interceptable](#what-is-routing-state?).
+An [HOC](https://reactjs.org/docs/higher-order-components.html) that builds a router that represents the current route in react state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) (another more in depth explanation of ADTs [here]((https://jrsinclair.com/articles/2019/algebraic-data-types-what-i-wish-someone-had-explained-about-functional-programming/))) and safely manages an [interceptable](#what-is-an-interceptable).
 
 Alternative to [react-router-dom](https://reacttraining.com/react-router/web/)
 
@@ -58,13 +58,13 @@ If you're using `withStaticRouter` and you find yourself doing a stateful redire
 ```tsx
 // Redirector.tsx
 componentDidMount() {
-  navigate(N.push(RouteADT.badRoute()));
+  navigate(N.push(MyRouteADT.badRoute()));
 }
 render() {
   return null;
 }
 // in parent component
-{route === RouteADT.goodRoute() && (
+{route === MyRouteADT.goodRoute() && (
   data.type === 'bad'
     ? (
       <Redirector />
@@ -82,7 +82,10 @@ You might be frustrated that `Redirector` is forced to implement `render`. You m
 You should use `withInterceptingRouter` instead, and move `data` into your `interceptable`:
 
 ```tsx
-const interceptRoute = (route, interceptable) => {
+const interceptRoute = (
+  route: MyRouteADT,
+  interceptable: MyInterceptable,
+): InterceptRouteResponse<MyRouteADT, MyInterceptable> => {
   if (route === 'goodRoute' && interceptable.data.type === 'bad') {
     return {
       sync: {
@@ -127,10 +130,10 @@ componentDidMount() {
 }
 render(){
   if (this.state.data === undefined) return (
-    <Loading />
+    <LoadingSpinner />
   );
   return (
-    <Loaded
+    <DataComp
       data={this.state.data}
     />
   );
@@ -146,7 +149,10 @@ You should be appalled at your impenetrable routing logic. You might also recogn
 You should use `withInterceptingRouter` instead, and move `data` into your `interceptable`:
 
 ```tsx
-const interceptRoute = (route, interceptable) => {
+const interceptRoute = (
+  route: MyRoute,
+  interceptable: MyInterceptable,
+): InterceptRouteResponse<MyRouteADT, MyInterceptable> => {
   if (
     route === RouteADT.loadedRoute()
     && interceptable.data === undefined
@@ -174,10 +180,10 @@ const interceptRoute = (route, interceptable) => {
   route === routeADT.loadedRoute() || route === RouteADT.loadingRoute()
 ) && (
   interceptable.data !== undefined
-    ? <Loaded
+    ? <DataComp
       data={interceptable.data}
     />
-    : <Loading />
+    : <LoadingSpinner />
 )}
 ```
 
@@ -204,9 +210,9 @@ If you do this:
 }}>reroute</button>
 // in your interceptRoute
 const interceptRoute = (
-  route: RouteADT,
-  interceptable: interceptable
-) => {
+  route: MyRouteADT,
+  interceptable: MyInterceptable
+): InterceptRouteResponse<MyRouteADT, MyInterceptable> => {
   if (route === RouteADT.loadedRoute() && interceptable === undefined) {
     return {
       async: T.task.map(loadInitializedData, initializedData => {
@@ -221,7 +227,7 @@ const interceptRoute = (
 
 You may be surprised that clicking `reroute` causes interceptable to be set to `initializedData`.
 
-This is because `navigate` triggers `interceptRoute` before `setInterceptable` can enqueue changes to `interceptable`. This causes `interceptRoute` to handle `loadedRoute` as though it must be initialized, and `initializedData` will eventually clobber `reroutedData`.
+This is because `navigate` triggers `interceptRoute` before `setInterceptable` can enqueue changes to `interceptable`. This causes `interceptRoute` to think that `interceptable` is uninitialized, which will trigger a `Task` that returns `initializedData`, which will clobber `reroutedData`.
 
 You should do this instead:
 
@@ -238,7 +244,7 @@ You should do this instead:
 
 The `Task` returned by `setInterceptable` uses a [`setState` callback](https://reactjs.org/docs/react-component.html#setstate) to ensure `interceptable` is updated before it resolves.
 
-While it may be annoying to have to invoke this task every time you want to use `setInterceptable`, it forces you to consider its runtime asynchronicity at compile time. As we have seen, it can be dangerous to think of `setInterceptable` as synchronous.
+While it may be annoying to have to invoke this task every time you want to use `setInterceptable`, it forces you to consider its runtime asynchronicity at compile time. As we have seen, it can be dangerous to think of `setInterceptable` as synchronous in relation to navigation.
 
 ## Can I have more than one router in my app?
 
@@ -335,7 +341,7 @@ const Landing = ({ interceptable }) => (
 import * as M from 'monocle-ts';
 import * as T from 'fp-ts/lib/Task';
 import { pipe } from 'fp-ts/lib/pipeable';
-interface interceptable {
+interface MyInterceptable {
   user: {
     memories: {
       childhood: {
@@ -344,10 +350,10 @@ interface interceptable {
     }
   }
 }
-const favoriteColorLens = M.Lens.fromPath<interceptable>()([
+const favoriteColorLens = M.Lens.fromPath<MyInterceptable>()([
   'user', 'memories', 'childhood', 'favoriteColor',
 ]);
-const interceptRoute = (route: R, interceptable: interceptable) => {
+const interceptRoute = (route: R, interceptable: MyInterceptable) => {
   if (
     route.type === 'favoriteColorRoute'
     && favoriteColorLens.get(interceptable) === undefined
@@ -441,27 +447,23 @@ The `Router` component that `withInterceptingRouter` wraps is given the props `R
 
 ```ts
 import * as N from 'react-fp-ts-routing/lib/Navigation';
-type UpdateRouter<S, R> = (params: UpdateRouterParams<S, R>) => void;
-interface UpdateRouterParams<S, R> {
-  interceptable?: S;
-  navigation?: N.Navigation<R>;
-}
-interface RouterProps<S, R> {
-  interceptable: S;
+export interface InterceptingRouterProps<R, I> {
   route: R;
-  updateRouter: (u: UpdateRouterParams<S, R>) => void;
+  interceptable: I;
+  setInterceptable: SetInterceptable<I>;
 }
+export type SetInterceptable<I> = (newInterceptable?: I) => T.Task<void>;
 ```
 | Type Variable | Description |
 | ------------- | ----------- |
-| `S`             | [interceptable](#what-is-routing-state?) type |
 | `R`             | Routing ADT type |
+| `I`             | [interceptable](#what-is-an-interceptable) type |
 
 | Prop  | Description  |
 | ------ | ------------ |
-| `interceptable`  | Your router's [interceptable](#what-is-routing-state?) |
+| `interceptable`  | Your router's [interceptable](#what-is-an-interceptable) |
 | `route` | Your app's current route, represented as your routing ADT |
-| `updateRouter` | Optionally updates [interceptable](#what-is-routing-state?) and then optionally invokes a [`Navigation`](#internal-adts) |
+| `updateRouter` | Optionally updates [interceptable](#what-is-an-interceptable) and then optionally invokes a [`Navigation`](#internal-adts) |
 
 ### `withInterceptingRouter` Function Type
 ```tsx
@@ -469,15 +471,19 @@ import { Parser } from 'fp-ts-routing'
 import * as N from 'react-fp-ts-routing/lib/Navigation'
 import * as A from 'react-fp-ts-routing/lib/Action'
 import * as History from 'history'
-type interceptRoute<S, R> = (
-  loadedRoute: R,
-  interceptable: S,
+type InterceptRoute<R, I> = (
+  newRoute: R,
+  interceptable: I,
   oldRoute: R,
   Action: A.Action,
-) => interceptRouteResponse<S, R>;
-interface interceptRouteResponse<S, R> {
-  sync?: UpdateRouterParams<S, R>;
-  async?: T.Task<UpdateRouterParams<S, R>>;
+) => InterceptRouteResponse<R, I>;
+interface InterceptRouteResponse<R, I> {
+  sync?: Interception<R, I>;
+  async?: T.Task<Interception<R, I>>;
+}
+interface Interception<R, I> {
+  interceptable?: I;
+  redirect?: N.Navigation<R>;
 }
 function withInterceptingRouter<S, R, T extends {} = {}>(
   Router: React.ComponentType<T & ManagedStateRouterProps<S, R>>,
@@ -491,8 +497,8 @@ function withInterceptingRouter<S, R, T extends {} = {}>(
 
 | Type Variable | Description |
 | ------------- | ----------- |
-| `S`             | [interceptable](#what-is-routing-state) type |
 | `R`             | Routing ADT type |
+| `I`             | [interceptable](#what-is-an-interceptable) type |
 | `T`             | Other arbitrary props passed into `Router`, defaults to the empty object |
 
 | Param  | Description  |
@@ -501,8 +507,8 @@ function withInterceptingRouter<S, R, T extends {} = {}>(
 | `parser` | Converts url path strings into routing ADT |
 | `formatter` | Converts routing ADT into a url path string |
 | `notFoundRoute` | ADT to use when `parser` can't find a route |
-| `defaultinterceptable` | Populates [interceptable](#what-is-routing-state?) before component is mounted |
-| `interceptRoute` | Updates the router using the new route and preexisting [interceptable](#what-is-routing-state?) |
+| `defaultinterceptable` | Populates [interceptable](#what-is-an-interceptable) before component is mounted |
+| `interceptRoute` | Updates the router using the new route and preexisting [interceptable](#what-is-an-interceptable) |
 
 ## Internal ADTs
 
@@ -532,4 +538,4 @@ function withInterceptingRouter<S, R, T extends {} = {}>(
 
 
 ## TODO
-- use [`window.history`](https://developer.mozilla.org/en-US/docs/Web/API/Window/history) instead of [`history`](https://github.com/ReactTraining/history)
+- use [`window.history`](https://developer.mozilla.org/en-US/docs/Web/API/Window/history) and [WindowEventHandlers](https://developer.mozilla.org/en-US/docs/Web/API/WindowEventHandlers) instead of [`history`](https://github.com/ReactTraining/history)

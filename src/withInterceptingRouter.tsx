@@ -5,8 +5,8 @@ import * as O from 'fp-ts/lib/Option';
 import { pipe } from 'fp-ts/lib/pipeable';
 import * as History from 'history';
 import { parse, Route, Parser } from 'fp-ts-routing';
-import * as N from './Navigation';
-import * as A from './Action';
+import { Navigation } from './Navigation';
+import { Action } from './Action';
 
 export function reactMemoEq<P> (
   comp: React.ComponentType<P>,
@@ -22,7 +22,7 @@ export type InterceptRoute<R, I> = (
   newRoute: R,
   interceptable: I,
   oldRoute: R,
-  Action: A.Action,
+  Action: Action,
 ) => InterceptRouteResponse<R, I>;
 export interface InterceptRouteResponse<R, I> {
   sync?: Interception<R, I>;
@@ -30,7 +30,7 @@ export interface InterceptRouteResponse<R, I> {
 }
 export interface Interception<R, I> {
   interceptable?: I;
-  redirect?: N.Navigation<R>;
+  redirect?: Navigation<R>;
 }
 export interface InterceptingRouterProps<R, I> {
   route: R;
@@ -48,8 +48,8 @@ const history = History.createBrowserHistory();
  */
 export function createNavigator <R>(
   formatter: ((r: R) => string),
-): (navigation: N.Navigation<R>) => void {
-  return N.fold<R, void>({
+): (navigation: Navigation<R>) => void {
+  return (navigation): void => navigation.fold<void>({
     onpush: (route) => history.push(formatter(route).toString()),
     onreplace: (route) => history.replace(formatter(route).toString()),
     onpushExt: (route) => history.push(route),
@@ -60,10 +60,10 @@ export function createNavigator <R>(
   });
 }
 
-const actionToNavResp = (a: History.Action): A.Action => {
-  if (a === 'PUSH') return A.push;
-  if (a === 'POP') return A.pop;
-  return A.replace;
+const actionToNavResp = (a: History.Action): Action => {
+  if (a === 'PUSH') return Action.push;
+  if (a === 'POP') return Action.pop;
+  return Action.replace;
 };
 
 /**
