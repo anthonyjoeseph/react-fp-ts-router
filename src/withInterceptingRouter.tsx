@@ -37,7 +37,7 @@ export interface InterceptingRouterProps<R, I> {
   interceptable: I;
   setInterceptable: SetInterceptable<I>;
 }
-export type SetInterceptable<I> = (newInterceptable?: I) => T.Task<void>;
+export type SetInterceptable<I> = (newInterceptable?: I) => T.Task<I>;
 
 const history = History.createBrowserHistory();
 
@@ -168,12 +168,15 @@ export default function withInterceptingRouter<R, I, T extends {} = {}>(
         interceptable={this.state.interceptable}
         setInterceptable={(
           newInterceptable: I | undefined,
-        ): T.Task<void> => {
+        ): T.Task<I> => {
           if (!newInterceptable) {
-            return T.of(undefined);
+            return T.of(this.state.interceptable);
           }
-          return (): Promise<void> => new Promise((resolve) => {
-            this.setState({ interceptable: newInterceptable }, resolve);
+          return (): Promise<I> => new Promise<I>((resolve) => {
+            this.setState(
+              { interceptable: newInterceptable },
+              () => resolve(newInterceptable),
+            );
           });
         }}
         {...this.props}

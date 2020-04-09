@@ -189,7 +189,7 @@ const interceptRoute = (
 
 # FAQ
 
-## Why does `setInterceptable` return a `Task<void>`? It's annoying that I have to remember to invoke it every time I use it
+## Why does `setInterceptable` return a `Task<I>`? It's annoying that I have to remember to invoke it every time I use it
 
 ### Loading data before a reroute
 
@@ -242,7 +242,7 @@ You should do this instead:
 }}>load stuff</button>
 ```
 
-The `Task` returned by `setInterceptable` uses a [`setState` callback](https://reactjs.org/docs/react-component.html#setstate) to ensure `interceptable` is updated before it resolves.
+The `Task` returned by `setInterceptable` uses a [`setState` callback](https://reactjs.org/docs/react-component.html#setstate) to ensure `interceptable` is updated before it resolves. It resolves into the latest `interceptable` state.
 
 While it may be annoying to have to invoke this task every time you want to use `setInterceptable`, it forces you to consider its runtime asynchronicity at compile time. As we have seen, it can be dangerous to think of `setInterceptable` as synchronous in relation to navigation.
 
@@ -254,7 +254,7 @@ The `route` prop provided to the router is meant to be the [single source of tru
 
 ## Isn't it cumbersome to [drill](https://kentcdodds.com/blog/prop-drilling/) the current route through all of my components's props?
 
-While you are encouraged to use [react context](https://reactjs.org/docs/context.html) to avoid drilling `interceptable` and `setInterceptable`, drilling `route` is actually a feature.
+While you are encouraged to use [react context](https://reactjs.org/docs/context.html) to avoid drilling `setInterceptable`, drilling `route` is actually a feature.
 
 A good practice with this library is to nest several routing ADTs together to mirror your app's component tree hierarchy. This enables you to ensure the correctness of your render logic at compile time. In this example, we see that the `LoggedIn` and `LoggedOut` components are relieved of the responsibility of handling irrelevant routes. This is one advantage we gain by having the current route represented globally.
 
