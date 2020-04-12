@@ -122,11 +122,10 @@ export default function withInterceptingRouter<R, I, T extends {} = {}>(
         );
         if (sync) {
           this.interceptSync(sync);
-        } else {
-          this.setState({
-            route: newRoute,
-          });
         }
+        this.setState({
+          route: newRoute,
+        });
         this.interceptAsync(async);
       }
       // will not be invoked on the initial route
