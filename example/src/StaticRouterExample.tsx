@@ -1,6 +1,7 @@
 import React from 'react';
 import * as U from 'unionize';
 import * as R from 'fp-ts-routing';
+
 import { withStaticRouter, createNavigator, Navigation } from 'react-fp-ts-router';
 
 const RouteADT = U.unionize({
