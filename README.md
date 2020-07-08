@@ -1,3 +1,7 @@
+# THIS REPO IS DEPRECATED
+### React middleware libraries are discouraged
+### Please use this technique instead: https://dev.to/anthonyjoeseph/type-safe-routing-with-fp-ts-routing-2fli
+
 # react-fp-ts-router
 An [HOC](https://reactjs.org/docs/higher-order-components.html) that builds a router that represents the current route in react state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) (another more in depth explanation of ADTs [here]((https://jrsinclair.com/articles/2019/algebraic-data-types-what-i-wish-someone-had-explained-about-functional-programming/))) and safely manages an [interceptable](#what-is-an-interceptable).
 
