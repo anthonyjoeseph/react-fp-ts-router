@@ -1,6 +1,7 @@
 # THIS REPO IS DEPRECATED
-### React middleware libraries are discouraged
-### Please use this technique instead: https://dev.to/anthonyjoeseph/type-safe-routing-with-fp-ts-routing-2fli
+### React/[history](https://github.com/ReactTraining/history) middleware libraries are discouraged, better to use fp-ts-routing and the native [browser history api](https://developer.mozilla.org/en-US/docs/Web/API/History_API) 
+### [Blog post](https://dev.to/anthonyjoeseph/type-safe-routing-with-fp-ts-routing-2fli)
+### (also [integrates](https://www.learnrxjs.io/learn-rxjs/operators/creation/fromevent) well with [redux-observable](https://redux-observable.js.org/): `fromEvent(window, 'popstate')`)
 
 # react-fp-ts-router
 An [HOC](https://reactjs.org/docs/higher-order-components.html) that builds a router that represents the current route in react state as an [ADT](https://dev.to/gcanti/functional-design-algebraic-data-types-36kf) (another more in depth explanation of ADTs [here]((https://jrsinclair.com/articles/2019/algebraic-data-types-what-i-wish-someone-had-explained-about-functional-programming/))) and safely manages an [interceptable](#what-is-an-interceptable).
